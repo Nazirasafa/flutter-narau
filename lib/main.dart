@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'SMKN 4 Bogor',
       theme: ThemeData( 
         primarySwatch: Colors.blue,
+        fontFamily: 'Poppins',
       ),
       home: LoginScreen(),  
     );

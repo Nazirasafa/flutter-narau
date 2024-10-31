@@ -4,201 +4,168 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class AgendaScreen extends StatefulWidget {
+  const AgendaScreen({super.key});
+
+
   @override
   _AgendaScreenState createState() => _AgendaScreenState();
 }
 
 class _AgendaScreenState extends State<AgendaScreen> {
-  List<dynamic> agendaList = [];
+  List<dynamic> eventList = [];
+  List<dynamic> filteredEventList = [];
   bool isLoading = true;
-  DateTime? selectedDate;
-
+  String searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+ 
   @override
   void initState() {
     super.initState();
-    fetchAgenda();
+    fetchevent();
   }
 
-  Future<void> fetchAgenda() async {
-    final response = await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/agenda.php'));
+  Future<void> fetchevent() async {
+    final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/events'));
 
     if (response.statusCode == 200) {
       setState(() {
-        agendaList = json.decode(response.body);
+        eventList = json.decode(response.body)['data'];
         isLoading = false;
       });
     } else {
       setState(() {
         isLoading = false;
       });
-      throw Exception('Failed to load agenda');
+      throw Exception('Failed to load event');
     }
   }
 
-  List<dynamic> getFilteredAgenda() {
-    if (selectedDate == null) return agendaList;
-    return agendaList.where((agenda) {
-      DateTime agendaDate = DateTime.parse(agenda['tgl_agenda']);
-      return agendaDate.year == selectedDate!.year &&
-             agendaDate.month == selectedDate!.month &&
-             agendaDate.day == selectedDate!.day;
-    }).toList();
+ void searchEvents(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredEventList = eventList
+          .where((event) =>
+              event['title'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
-  @override
-  Widget build(BuildContext context) {
+Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Agenda',
-        style: TextStyle(
-            fontWeight: FontWeight.w900, // Extra bold text
-            fontSize: 18, // Smaller font size
-          ),),
-        
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_today),
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: selectedDate ?? DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2025),
-              );
-              if (picked != null && picked != selectedDate) {
-                setState(() {
-                  selectedDate = picked;
-                });
-              }
-            },
-          ),
-        ],
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                if (selectedDate != null)
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'Filtered Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: getFilteredAgenda().length,
-                    itemBuilder: (context, index) {
-                      final agenda = getFilteredAgenda()[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        elevation: 3, // Add some shadow for better separation
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0), // Add padding to the Card
-                          child: ListTile(
-                            title: Text(
-                              agenda['judul_agenda'],
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 8),
-                                Text(
-                                  'Date: ${agenda['tgl_agenda']}',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  agenda['isi_agenda'],
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AgendaDetailScreen(agenda: agenda),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-}
-
-class AgendaDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> agenda;
-
-  const AgendaDetailScreen({Key? key, required this.agenda}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-     appBar: AppBar(
-        title: Text(
-          agenda['judul_agenda'],
-          style: TextStyle(
-            fontWeight: FontWeight.w900, // Extra bold text
-            fontSize: 18, // Smaller font size
-            color: Color(0xFFA594F9),
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+      backgroundColor: Colors.white,
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              agenda['judul_agenda'],
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  const Text(
+                    'News',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'News about SMKN 4 Bogor',
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey
+                              .withOpacity(0.3), 
+                          spreadRadius: 3,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: searchPosts,
+                      decoration: const InputDecoration(
+                        hintText: 'Search..',
+                        prefixIcon: Icon(Icons.search),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 12), // Adjusted padding
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'All News',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CategoryScreen(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Other Categories..',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 8),
-            Text(
-              'Date: ${agenda['tgl_agenda']}',
-              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Posted on: ${agenda['tgl_post_agenda']}',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
-            SizedBox(height: 16),
-            Text(
-              agenda['isi_agenda'],
-              style: TextStyle(fontSize: 16, height: 1.5),
-            ),
-          ],
+         ],
         ),
       ),
     );
   }
+
+
+  
 }
