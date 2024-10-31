@@ -40,7 +40,7 @@ class _InfoScreenState extends State<InfoScreen> {
       setState(() {
         isLoading = false;
       });
-      print('Error: $e');
+      _showErrorDialog('Failed to load events: $e');
     }
   }
 
@@ -54,10 +54,25 @@ class _InfoScreenState extends State<InfoScreen> {
     });
   }
 
+void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF6F6F6),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,13 +101,13 @@ class _InfoScreenState extends State<InfoScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withOpacity(0.2),
                           spreadRadius: 3,
-                          blurRadius: 5,
+                          blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
                       ],
@@ -104,6 +119,7 @@ class _InfoScreenState extends State<InfoScreen> {
                         hintText: 'Search..',
                         prefixIcon: Icon(
                           Icons.search,
+                          size: 25,
                           color: Colors.grey[500],
                         ),
                         border: InputBorder.none,
@@ -123,14 +139,14 @@ class _InfoScreenState extends State<InfoScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.blue[50],
+                            color: Colors.blue[400],
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Center(
                             child: Text(
                               'All News',
                               style: TextStyle(
-                                color: Colors.blue,
+                                color: Colors.white,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -151,8 +167,16 @@ class _InfoScreenState extends State<InfoScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 3,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                             ),
                             child: Center(
                               child: Text(
@@ -181,99 +205,118 @@ class _InfoScreenState extends State<InfoScreen> {
                           itemBuilder: (context, index) {
                             final post = filteredPostList[index];
                             return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        DetailInfoScreen(postId: post['id']),
-                                  ),
-                                );
-                              },
-                              child: Card(
-                                elevation: 0,
-                                margin: EdgeInsets.only(top: 16),
-                                color: Colors.white,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Hero(
-                                        tag: 'post-${post['id']}',
-                                        child: CachedNetworkImage(
-                                          imageUrl: post['img'],
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) =>
-                                              Container(
-                                            color: Colors.grey[300],
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              Icon(Icons.error),
-                                        ),
-                                      ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailInfoScreen(postId: post['id']),
                                     ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Wrap(
-                                            spacing:
-                                                6.0, // Spacing between each category
-                                            children: post['categories']
-                                                .map<Widget>((category) {
-                                              return Text(
-                                                category['title'] ?? '',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.blue,
-                                                  fontSize: 12,
-                                                ),
-                                              );
-                                            }).toList(),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            post['title'] ?? '',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                              height:
-                                                  1.0, // Atur nilai height sesuai kebutuhan
+                                  );
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(15.0),
+                                  margin: EdgeInsets.only(top: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(30)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 5,
+                                        blurRadius: 15,
+                                        offset: Offset(
+                                            0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: Hero(
+                                            tag: 'post-${post['id']}',
+                                            child: CachedNetworkImage(
+                                              imageUrl: post['img'],
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  Container(
+                                                color: Colors.grey[300],
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Icon(Icons.error),
                                             ),
                                           ),
-                                          const SizedBox(height: 8),
-                                          Row(
+                                        ),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
+                                              Wrap(
+                                                spacing:
+                                                    6.0, // Spacing between each category
+                                                children: post['categories']
+                                                    .map<Widget>((category) {
+                                                  return Text(
+                                                    category['title'] ?? '',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.blue,
+                                                      fontSize: 12,
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              ),
+                                              const SizedBox(height: 4),
                                               Text(
-                                                post['user']['name'],
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.grey[500],
-                                                  fontSize: 12,
+                                                post['title'] ?? '',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                  height:
+                                                      1.0, // Atur nilai height sesuai kebutuhan
                                                 ),
                                               ),
-                                              Text(
-                                                ' • ${post['read_time']} min read',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.grey[500],
-                                                  fontSize: 12,
-                                                ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    post['user']['name'],
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: Colors.grey[500],
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    ' • ${post['read_time']} min read',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: Colors.grey[500],
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
+                                
+                                ));
                           },
                         ),
             ),
@@ -361,7 +404,8 @@ class DetailInfoScreen extends StatelessWidget {
                         topRight: Radius.circular(50),
                       ),
                     ),
-                    padding: const EdgeInsets.only(right:30, left:30, bottom:30),
+                    padding:
+                        const EdgeInsets.only(right: 30, left: 30, bottom: 30),
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,7 +454,7 @@ class DetailInfoScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                   '${post['user']['name']} - 9 hours ago',
+                                    '${post['user']['name']} - 9 hours ago',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),

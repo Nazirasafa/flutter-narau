@@ -2,7 +2,7 @@ import 'package:api_frontend/gallery.dart';
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'info.dart';
-import 'agenda.dart';
+import 'event.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -14,7 +14,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final List<Widget> _pages = [
     HomeScreen(),
     InfoScreen(),
-    AgendaScreen(),
+    EventScreen(),
     GalleryScreen(),
   ];
 
@@ -40,7 +40,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Agenda',
+            label: 'Event',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.article),
