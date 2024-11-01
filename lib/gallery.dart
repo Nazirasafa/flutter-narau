@@ -1,3 +1,4 @@
+import 'package:api_frontend/components/lazyloadimage.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
@@ -11,8 +12,11 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  List<dynamic> galleryList = [];
+  List<Map<String, dynamic>> galleryList = [];
+  List<Map<String, dynamic>> filteredGallery = [];
   bool isLoading = true;
+  String searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -21,128 +25,210 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> fetchGallery() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/galleries'));
-
-    if (response.statusCode == 200) {
+    try {
+      final response =
+          await http.get(Uri.parse('http://10.0.2.2:8000/api/galleries'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body)['data'] as List;
+        setState(() {
+          galleryList =
+              data.map((item) => item as Map<String, dynamic>).toList();
+          filteredGallery = galleryList;
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load gallery');
+      }
+    } catch (e) {
       setState(() {
-        galleryList = json.decode(response.body)['data'];
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      throw Exception('Failed to load gallery');
+      _showErrorDialog('Failed to load gallery: $e');
     }
+  }
+
+  void searchGallery(String query) {
+    setState(() {
+      searchQuery = query;
+      if (query.isEmpty) {
+        filteredGallery = galleryList;
+      } else {
+        filteredGallery = galleryList
+            .where((item) => item['name']
+                .toString()
+                .toLowerCase()
+                .contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width > 600;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Gallery',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black87),
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator(color: Color(0xFFA594F9)))
-          : GridView.builder(
-              padding: EdgeInsets.all(8),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: isWideScreen ? 2 : 1, // Single column on small screens
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 16 / 6, // Set to 16:9 aspect ratio
-              ),
-              itemCount: galleryList.length,
-              itemBuilder: (context, index) {
-                final gallery = galleryList[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GalleryDetailScreen(galleryId: gallery['id']), // Pass the gallery ID here
-                      ),
-                    );
-                  },
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 8,
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: CachedNetworkImage(
-                              imageUrl: gallery['img'] ?? 'https://via.placeholder.com/150',
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFFA594F9),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Icon(Icons.error, size: 50, color: Colors.redAccent),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Colors.black.withOpacity(0.7), Colors.transparent],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
-                              borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  gallery['name'] ?? 'No Name',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  gallery['desc'] ?? 'No Description',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white70,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+      backgroundColor: const Color(0xFFF6F6F6),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 40),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Galleries',
+                  style: TextStyle(
+                    fontSize: 50,
+                    fontWeight: FontWeight.w500,
                   ),
-                );
-              },
+                ),
+                Text(
+                  'Galleries of SMKN 4 Bogor',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildSearchBar(),
+              ],
             ),
+          ),
+          Expanded(
+            child: isLoading
+                ? Center(
+                    child: CircularProgressIndicator(color: Color(0xFFA594F9)))
+                : GridView.builder(
+                    padding: EdgeInsets.all(16),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isWideScreen ? 3 : 2,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: filteredGallery.length,
+                    itemBuilder: (context, index) {
+                      final gallery = filteredGallery[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  GalleryDetailScreen(galleryId: gallery['id']),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            image: DecorationImage(
+                              image: CachedNetworkImageProvider(
+                                gallery['img'],
+                                maxWidth: 800,
+                                maxHeight: 800,
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7),
+                                ],
+                              ),
+                            ),
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Text(
+                                  gallery['name'],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 3,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: searchGallery,
+        decoration: InputDecoration(
+          hintText: 'Search..',
+          prefixIcon: Icon(
+            Icons.search,
+            size: 25,
+            color: Colors.grey[500],
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear, color: Colors.grey[500]),
+                  onPressed: () {
+                    _searchController.clear();
+                    searchGallery('');
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          hintStyle: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 15,
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        ),
+      ),
     );
   }
 }
@@ -150,7 +236,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
 class GalleryDetailScreen extends StatefulWidget {
   final int galleryId;
 
-  const GalleryDetailScreen({Key? key, required this.galleryId}) : super(key: key);
+  const GalleryDetailScreen({Key? key, required this.galleryId})
+      : super(key: key);
 
   @override
   _GalleryDetailScreenState createState() => _GalleryDetailScreenState();
@@ -167,112 +254,84 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
   }
 
   Future<void> fetchGalleryDetail() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/galleries/${widget.galleryId}'));
+    try {
+      final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/galleries/${widget.galleryId}'));
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        setState(() {
+          gallery = json.decode(response.body)['data'];
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load gallery details');
+      }
+    } catch (e) {
       setState(() {
-        gallery = json.decode(response.body)['data'];
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      throw Exception('Failed to load gallery details');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading gallery details: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF6F6F6),
       appBar: AppBar(
-        title: Text(gallery?['name'] ?? 'Gallery Detail'),
-        backgroundColor: Color(0xFFA594F9),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFFA594F9)))
           : gallery == null
-              ? Center(child: Text('No gallery found.', style: TextStyle(fontSize: 18)))
+              ? Center(child: Text('No data available'))
               : SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: CachedNetworkImage(
-                            imageUrl: gallery!['img'] ?? 'https://via.placeholder.com/300',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            placeholder: (context, url) => Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFFA594F9),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Icon(Icons.error, size: 50, color: Colors.redAccent),
-                          ),
+                      CachedNetworkImage(
+                        imageUrl: gallery!['img'] ??
+                            'https://via.placeholder.com/150',
+                        width: double.infinity,
+                        height: 300,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Center(
+                          child: CircularProgressIndicator(
+                              color: Color(0xFFA594F9)),
                         ),
+                        errorWidget: (context, url, error) => Icon(Icons.error,
+                            size: 50, color: Colors.redAccent),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(20.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               gallery!['name'] ?? 'No Name',
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFFA594F9)),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 10),
                             Text(
-                              'Posted on: ${gallery!['created_at'] ?? 'Unknown Date'}',
-                              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              gallery!['desc'] ?? 'No description available',
-                              style: TextStyle(fontSize: 16, color: Colors.black87),
+                              gallery!['desc'] ?? 'No Description',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[800],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      if (gallery!['images'] != null && gallery!['images'].isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text('More Photos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      if (gallery?['images'] != null)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: GridView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2, // Adjust for screen size
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                            ),
-                            itemCount: gallery!['images'].length,
-                            itemBuilder: (context, index) {
-                              final image = gallery!['images'][index];
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CachedNetworkImage(
-                                  imageUrl: image['image'],
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFFA594F9),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) => Icon(Icons.error, size: 50, color: Colors.redAccent),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
                     ],
                   ),
                 ),
