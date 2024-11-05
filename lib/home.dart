@@ -14,7 +14,8 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final storage = const FlutterSecureStorage();
   String userName = '';
   String fullName = '';
@@ -61,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
   }
 
-   Future<void> updateProfile() async {
+  Future<void> updateProfile(String newName, String? newProfilePic) async {
     final authToken = await storage.read(key: 'auth_token');
     if (authToken == null) {
       if (mounted) {
@@ -73,30 +74,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     final url = Uri.parse('http://10.0.2.2:8000/api/profile/update');
+
+    final Map<String, String> body = {
+      'name': newName,
+    };
+
+    if (newProfilePic != null) {
+      body['profile_pic'] = newProfilePic;
+    }
+
     final response = await http.put(
       url,
-      body: {
-        'name': fullName,
-        //'profile_pic': profilePic,
-      },
+      body: body,
       headers: {
         'Authorization': 'Bearer $authToken',
       },
     );
 
     if (response.statusCode == 200) {
-      print('updating profile: ${response.body}');
+      // Update the local storage with new values
+      await storage.write(key: 'name', value: newName);
+      if (newProfilePic != null) {
+        await storage.write(key: 'profile_pic', value: newProfilePic);
+      }
 
-      // Update the local data and refresh the UI
-      loadUserData();
+      // Reload the user data to refresh the UI
+      await loadUserData();
     } else {
-      // Handle the error case
       print('Error updating profile: ${response.statusCode}');
     }
   }
 
   Future<void> fetchPosts() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/latest/posts'));
+    final response =
+        await http.get(Uri.parse('http://10.0.2.2:8000/api/latest/posts'));
     if (response.statusCode == 200) {
       setState(() {
         posts = json.decode(response.body)['data'];
@@ -106,7 +117,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Future<void> fetchEvents() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/latest/events'));
+    final response =
+        await http.get(Uri.parse('http://10.0.2.2:8000/api/latest/events'));
     if (response.statusCode == 200) {
       setState(() {
         events = json.decode(response.body)['data'];
@@ -118,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -169,7 +182,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               radius: 24,
                               backgroundImage: profilePic.isNotEmpty
                                   ? CachedNetworkImageProvider(profilePic)
-                                  : const AssetImage('assets/profile_placeholder.png') as ImageProvider,
+                                  : const AssetImage(
+                                          'assets/profile_placeholder.png')
+                                      as ImageProvider,
                             ),
                           ],
                         ),
@@ -180,19 +195,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                   // User Info Card
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.blue,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
-                        const CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.white,
-                          child: Icon(Icons.person, color: Colors.blue),
-                        ),
-                        const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -214,14 +223,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           ],
                         ),
                         const Spacer(),
-                        const Icon(
-                          Icons.chevron_right,
-                          color: Colors.white,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 24),
+                            Text(
+                              DateFormat('MMMM d, yyyy').format(DateTime.now()),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                   const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
                   // Recent Section
                   const Text(
@@ -250,7 +269,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DetailNewsScreen(postId: post['id']),
+                                builder: (context) =>
+                                    DetailNewsScreen(postId: post['id']),
                               ),
                             );
                           },
@@ -268,7 +288,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
-                                  colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.8)
+                                  ],
                                 ),
                               ),
                               padding: const EdgeInsets.all(16),
@@ -291,7 +314,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                     children: [
                                       Text(
                                         '${post['read_time']} min read',
-                                        style: const TextStyle(color: Colors.white70),
+                                        style: const TextStyle(
+                                            color: Colors.white70),
                                       ),
                                     ],
                                   ),
@@ -320,57 +344,104 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     itemBuilder: (context, index) {
                       final event = events[index];
                       return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EventDetailScreen(event: event),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EventDetailScreen(event: event),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  spreadRadius: 3,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                        child: Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  event['name'],
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+
+                                // Title of the event
+                                Center(
+                                  child: Text(
+                                    event['name'],
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                // Short description of the event
+                                Center(
+                                  child: Text(
+                                    event['short_desc'],
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  event['short_desc'],
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
+
+                                // Date and Time row
                                 Row(
                                   children: [
-                                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.calendar_today,
+                                      color: Colors.grey[600],
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      DateFormat('EEEE, d MMMM').format(DateTime.parse(event['date'])),
-                                      style: const TextStyle(color: Colors.grey),
+                                      DateFormat('EEEE, d MMMM').format(
+                                          DateTime.parse(event['date'])),
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontFamily: 'Poppins',
+                                        fontSize: 12,
+                                      ),
                                     ),
                                     const Spacer(),
+                                    Icon(
+                                      Icons.access_time,
+                                      color: Colors.grey[600],
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      '${DateFormat('HH:mm').format(DateTime.parse('2024-01-01 ${event['time_start']}'))} - '
-                                      '${DateFormat('HH:mm').format(DateTime.parse('2024-01-01 ${event['time_end']}'))}',
-                                      style: const TextStyle(color: Colors.grey),
+                                      '${event['time_start']} - ${event['time_end']}',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontFamily: 'Poppins',
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                          ),
-                        ),
-                      );
+                          ));
                     },
                   ),
                 ],
@@ -386,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 class ProfileScreen extends StatefulWidget {
   final String name;
   final String profilePic;
-  final VoidCallback onProfileUpdate;
+  final Function(String newName, String? newProfilePic) onProfileUpdate;
 
   ProfileScreen({
     required this.name,
@@ -400,13 +471,13 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _nameController;
-  late String _profilePic;
+  String? _newProfilePic;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
-    _profilePic = widget.profilePic;
   }
 
   @override
@@ -415,17 +486,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  void _updateProfile() {
-    // Update the profile data and call the callback
-    widget.onProfileUpdate();
-    Navigator.pop(context);
+  Future<void> _updateProfile() async {
+    setState(() => _isLoading = true);
+
+    try {
+      await widget.onProfileUpdate(
+        _nameController.text,
+        _newProfilePic,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Edit Profile'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -437,16 +521,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: _profilePic.isNotEmpty
-                        ? CachedNetworkImageProvider(_profilePic)
-                        : const AssetImage('assets/profile_placeholder.png') as ImageProvider,
+                    backgroundImage: _newProfilePic != null
+                        ? CachedNetworkImageProvider(_newProfilePic!)
+                        : widget.profilePic.isNotEmpty
+                            ? CachedNetworkImageProvider(widget.profilePic)
+                            : const AssetImage('assets/profile_placeholder.png')
+                                as ImageProvider,
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: GestureDetector(
-                      onTap: () {
-                        // Add logic to update profile picture
+                      onTap: () async {
+                        // Add your image picking logic here
+                        // Example:
+                        // final picker = ImagePicker();
+                        // final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                        // if (pickedFile != null) {
+                        //   setState(() {
+                        //     _newProfilePic = pickedFile.path;
+                        //   });
+                        // }
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -470,13 +565,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Name',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _updateProfile,
-              child: const Text('Update Profile'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _updateProfile,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Update Profile'),
+              ),
             ),
           ],
         ),
