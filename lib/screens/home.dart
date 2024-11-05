@@ -1,6 +1,6 @@
-import 'package:api_frontend/event.dart';
+import 'package:api_frontend/screens/event/event_detail.dart';
 import 'package:api_frontend/login.dart';
-import 'package:api_frontend/news.dart';
+import 'package:api_frontend/screens/news/news_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen>
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/profile/update');
+    final url = Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/profile/update');
 
     final Map<String, String> body = {
       'name': newName,
@@ -101,13 +101,12 @@ class _HomeScreenState extends State<HomeScreen>
       // Reload the user data to refresh the UI
       await loadUserData();
     } else {
-      print('Error updating profile: ${response.statusCode}');
     }
   }
 
   Future<void> fetchPosts() async {
     final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/api/latest/posts'));
+        await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/latest/posts'));
     if (response.statusCode == 200) {
       setState(() {
         posts = json.decode(response.body)['data'];
@@ -118,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> fetchEvents() async {
     final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/api/latest/events'));
+        await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/latest/events'));
     if (response.statusCode == 200) {
       setState(() {
         events = json.decode(response.body)['data'];

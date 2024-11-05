@@ -10,7 +10,7 @@ class RegisterScreen extends StatelessWidget {
 
   Future<void> registerUser(BuildContext context) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/register'),
+      Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/register'),
       body: {
         'name': nameController.text,
         'email': emailController.text,
@@ -34,18 +34,18 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register')),
+      appBar: AppBar(title: const Text('Register')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: nameController, decoration: InputDecoration(labelText: 'Name')),
-            TextField(controller: emailController, decoration: InputDecoration(labelText: 'Email')),
-            TextField(controller: passwordController, decoration: InputDecoration(labelText: 'Password'), obscureText: true),
-            TextField(controller: confirmPasswordController, decoration: InputDecoration(labelText: 'Confirm Password'), obscureText: true),
+            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
+            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
+            TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
+            TextField(controller: confirmPasswordController, decoration: const InputDecoration(labelText: 'Confirm Password'), obscureText: true),
             ElevatedButton(
               onPressed: () => registerUser(context),
-              child: Text('Register'),
+              child: const Text('Register'),
             ),
           ],
         ),

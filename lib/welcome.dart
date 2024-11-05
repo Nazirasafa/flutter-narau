@@ -1,8 +1,11 @@
-import 'package:api_frontend/gallery.dart';
+import 'package:api_frontend/screens/gallery/gallery.dart';
 import 'package:flutter/material.dart';
-import 'home.dart';
-import 'news.dart';
-import 'event.dart';
+import 'package:api_frontend/screens/news/news.dart';
+import 'package:api_frontend/screens/event/event.dart';
+import 'package:api_frontend/screens/home.dart';
+
+
+
 
 class WelcomeScreen extends StatefulWidget {
   @override

@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (token != null) {
       // Validate the token by making a test API call
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/check-token'), // Replace with your validation endpoint
+        Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/check-token'), // Replace with your validation endpoint
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
 Future<String?> _authUser(LoginData data) async {
   try {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/login'), // Change to correct IP for device/emulator
+      Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/login'), // Change to correct IP for device/emulator
       headers: {
         'Content-Type': 'application/json',
       },
@@ -58,10 +58,7 @@ Future<String?> _authUser(LoginData data) async {
       }),
     );
 
-    // Print the response status and body for debugging
-    print("Response status: ${response.statusCode}");
-    print("Response body: ${response.body}");
-
+   
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
@@ -84,8 +81,6 @@ Future<String?> _authUser(LoginData data) async {
       return 'Invalid username or password';
     }
   } catch (e) {
-    // Print the specific error for more insight
-    print("Error during login: $e");
     return 'An error occurred. Please try again.';
   }
 }
