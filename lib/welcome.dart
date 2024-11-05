@@ -1,7 +1,7 @@
 import 'package:api_frontend/gallery.dart';
 import 'package:flutter/material.dart';
 import 'home.dart';
-import 'info.dart';
+import 'news.dart';
 import 'event.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -13,9 +13,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   int _selectedIndex = 0;
   final List<Widget> _pages = [
     HomeScreen(),
-    InfoScreen(),
+    const NewsScreen(),
     EventScreen(),
-    GalleryScreen(),
+    const GalleryScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -36,7 +36,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.info),
-            label: 'Info',
+            label: 'News',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

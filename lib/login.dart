@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   Duration get loginTime => const Duration(milliseconds: 2250);
 
@@ -67,9 +67,12 @@ Future<String?> _authUser(LoginData data) async {
 
       // Check for success and extract token from nested data object
       if (jsonResponse['success'] == true) {
+        String name = jsonResponse['data']['name'];
         String token = jsonResponse['data']['token'];
         String role = jsonResponse['data']['role'].toString();
 
+
+        await storage.write(key: 'name', value: name);
         await storage.write(key: 'auth_token', value: token);
         await storage.write(key: 'role', value: role);
 

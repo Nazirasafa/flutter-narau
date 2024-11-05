@@ -93,7 +93,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Galleries',
                   style: TextStyle(
                     fontSize: 50,
@@ -101,7 +101,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                 ),
                 Text(
-                  'Galleries of SMKN 4 Bogor',
+                  'Delve into the diverse galleries of SMKN 4 Bogor.',
                   style: TextStyle(
                     color: Colors.grey[800],
                     fontSize: 14,
@@ -114,14 +114,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
           Expanded(
             child: isLoading
-                ? Center(
-                    child: CircularProgressIndicator(color: Color(0xFFA594F9)))
+                ? const Center(
+                    child: const CircularProgressIndicator(
+                        color: const Color(0xFFA594F9)))
                 : GridView.builder(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: isWideScreen ? 3 : 2,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
+                      childAspectRatio: 3 / 4,
                     ),
                     itemCount: filteredGallery.length,
                     itemBuilder: (context, index) {
@@ -138,6 +140,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.4),
+                                spreadRadius: 3,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                             borderRadius: BorderRadius.circular(25),
                             image: DecorationImage(
                               image: CachedNetworkImageProvider(
@@ -278,63 +288,141 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final images = gallery?['images'] ?? [];
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator(color: Color(0xFFA594F9)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFA594F9)),
+            )
           : gallery == null
-              ? Center(child: Text('No data available'))
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: gallery!['img'] ??
-                            'https://via.placeholder.com/150',
-                        width: double.infinity,
-                        height: 300,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Center(
-                          child: CircularProgressIndicator(
-                              color: Color(0xFFA594F9)),
-                        ),
-                        errorWidget: (context, url, error) => Icon(Icons.error,
-                            size: 50, color: Colors.redAccent),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              gallery!['name'] ?? 'No Name',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+              ? const Center(child: Text('No data available'))
+              : Stack(
+                  children: [
+                    CustomScrollView(
+                      slivers: [
+                        SliverAppBar(
+                          expandedHeight: 300,
+                          floating: false,
+                          pinned: false,
+                          flexibleSpace: FlexibleSpaceBar(
+                            background: Hero(
+                              tag: 'gallery-${gallery!['id']}',
+                              child: CachedNetworkImage(
+                                imageUrl: gallery!['img'] ?? '',
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
                               ),
                             ),
-                            SizedBox(height: 10),
-                            Text(
-                              gallery!['desc'] ?? 'No Description',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[800],
+                          ),
+                          leading: IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      top: 280,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(50),
+                            topRight: Radius.circular(50),
+                          ),
+                        ),
+                        padding: const EdgeInsets.only(
+                            right: 30, left: 30, bottom: 30),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 30),
+                              Text(
+                                gallery!['name'] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              Text(
+                                gallery!['desc'] ?? '',
+                                textAlign: TextAlign.justify,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  height: 1.6,
+                                ),
+                              ),
+                               const SizedBox(height: 26),
+                              const Text(
+                                'Images',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              GridView.builder(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount:
+                                      MediaQuery.of(context).size.width > 600
+                                          ? 4
+                                          : 3,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 3 / 4,
+                                ),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: images.length,
+                                itemBuilder: (context, index) {
+                                  final imageUrl = images[index]['image'];
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      // Aksi ketika gambar ditekan, jika diperlukan.
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.4),
+                                            spreadRadius: 3,
+                                            blurRadius: 5,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.circular(25),
+                                        image: DecorationImage(
+                                          image: CachedNetworkImageProvider(
+                                            imageUrl,
+                                            maxWidth: 800,
+                                            maxHeight: 800,
+                                          ),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
     );
   }
+
+  
 }

@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class InfoScreen extends StatefulWidget {
-  const InfoScreen({super.key});
+class NewsScreen extends StatefulWidget {
+  const NewsScreen({super.key});
 
   @override
-  _InfoScreenState createState() => _InfoScreenState();
+  _NewsScreenState createState() => _NewsScreenState();
 }
 
-class _InfoScreenState extends State<InfoScreen> {
+class _NewsScreenState extends State<NewsScreen> {
   List<dynamic> postList = [];
   List<dynamic> filteredPostList = [];
   bool isLoading = true;
@@ -196,11 +196,11 @@ void _showErrorDialog(String message) {
             ),
             Expanded(
               child: isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: const CircularProgressIndicator())
                   : postList.isEmpty
-                      ? Center(child: Text('No posts found in this category'))
+                      ? const Center(child: const Text('No posts found in this category'))
                       : ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: filteredPostList.length,
                           itemBuilder: (context, index) {
                             final post = filteredPostList[index];
@@ -210,23 +210,23 @@ void _showErrorDialog(String message) {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          DetailInfoScreen(postId: post['id']),
+                                          DetailNewsScreen(postId: post['id']),
                                     ),
                                   );
                                 },
                                 child: Container(
-                                  padding: EdgeInsets.all(15.0),
-                                  margin: EdgeInsets.only(top: 10),
+                                  padding: const EdgeInsets.all(15.0),
+                                  margin: const EdgeInsets.only(top: 10),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(30)),
+                                        const BorderRadius.all(const Radius.circular(30)),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.grey.withOpacity(0.2),
                                         spreadRadius: 5,
                                         blurRadius: 15,
-                                        offset: Offset(
+                                        offset: const Offset(
                                             0, 3), // changes position of shadow
                                       ),
                                     ],
@@ -251,11 +251,11 @@ void _showErrorDialog(String message) {
                                               ),
                                               errorWidget:
                                                   (context, url, error) =>
-                                                      Icon(Icons.error),
+                                                      const Icon(Icons.error),
                                             ),
                                           ),
                                         ),
-                                        SizedBox(width: 12),
+                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
@@ -327,9 +327,9 @@ void _showErrorDialog(String message) {
   }
 }
 
-class DetailInfoScreen extends StatelessWidget {
+class DetailNewsScreen extends StatelessWidget {
   final int postId;
-  const DetailInfoScreen({Key? key, required this.postId}) : super(key: key);
+  const DetailNewsScreen({Key? key, required this.postId}) : super(key: key);
 
   Future<Map<String, dynamic>> fetchPostDetails() async {
     final response =
@@ -348,7 +348,7 @@ class DetailInfoScreen extends StatelessWidget {
         future: fetchPostDetails(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: const CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
@@ -368,9 +368,9 @@ class DetailInfoScreen extends StatelessWidget {
                             imageUrl: post['img'],
                             fit: BoxFit.cover,
                             placeholder: (context, url) =>
-                                Center(child: CircularProgressIndicator()),
+                                const Center(child: const CircularProgressIndicator()),
                             errorWidget: (context, url, error) =>
-                                Icon(Icons.error),
+                                const Icon(Icons.error),
                           ),
                         ),
                       ),
@@ -378,16 +378,6 @@ class DetailInfoScreen extends StatelessWidget {
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () => Navigator.pop(context),
                       ),
-                      actions: [
-                        IconButton(
-                          icon: const Icon(Icons.bookmark_border),
-                          onPressed: () {},
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert),
-                          onPressed: () {},
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -558,7 +548,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            FilteredInfoScreen(category: category['title']),
+                            FilteredNewsScreen(category: category['title']),
                       ),
                     );
                   },
@@ -605,17 +595,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 }
 
-class FilteredInfoScreen extends StatefulWidget {
+class FilteredNewsScreen extends StatefulWidget {
   final String category;
 
-  const FilteredInfoScreen({Key? key, required this.category})
+  const FilteredNewsScreen({Key? key, required this.category})
       : super(key: key);
 
   @override
-  _FilteredInfoScreenState createState() => _FilteredInfoScreenState();
+  _FilteredNewsScreenState createState() => _FilteredNewsScreenState();
 }
 
-class _FilteredInfoScreenState extends State<FilteredInfoScreen> {
+class _FilteredNewsScreenState extends State<FilteredNewsScreen> {
   List<dynamic> postList = [];
   List<dynamic> filteredPostList = [];
   bool isLoading = true;
@@ -742,7 +732,7 @@ class _FilteredInfoScreenState extends State<FilteredInfoScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        DetailInfoScreen(postId: post['id']),
+                                        DetailNewsScreen(postId: post['id']),
                                   ),
                                 );
                               },
@@ -767,7 +757,7 @@ class _FilteredInfoScreenState extends State<FilteredInfoScreen> {
                                             color: Colors.grey[300],
                                           ),
                                           errorWidget: (context, url, error) =>
-                                              Icon(Icons.error),
+                                              const Icon(Icons.error),
                                         ),
                                       ),
                                     ),
