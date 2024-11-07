@@ -1,32 +1,83 @@
+import 'package:api_frontend/login.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'welcome.dart';
 
-class RegisterScreen extends StatelessWidget {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
 
-  Future<void> registerUser(BuildContext context) async {
-    final response = await http.post(
-      Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/register'),
-      body: {
-        'name': nameController.text,
-        'email': emailController.text,
-        'password': passwordController.text,
-        'c_password': confirmPasswordController.text,
-      },
-    );
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
 
-    if (response.statusCode == 200) {
-      // Registration successful, navigate to login or other screen
-      Navigator.pop(context);
-    } else {
-      // Handle errors
-      final jsonResponse = json.decode(response.body);
+class _RegisterScreenState extends State<RegisterScreen> {
+  final storage = const FlutterSecureStorage();
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  Future<void> _registerUser() async {
+    final String username = _usernameController.text;
+    final String email = _emailController.text;
+    final String password = _passwordController.text;
+    final String confirmPassword = _confirmPasswordController.text;
+
+    if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(jsonResponse['error'] ?? 'Registration failed')),
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/register'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': username,
+          'email': email,
+          'password': password,
+          'c_password': confirmPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        if (jsonResponse['success'] == true) {
+          String userid = jsonResponse['data']['id'].toString();
+          String name = jsonResponse['data']['name'];
+          String token = jsonResponse['data']['token'];
+          String role = jsonResponse['data']['role'].toString();
+
+          await storage.write(key: 'userid', value: userid);
+          await storage.write(key: 'name', value: name);
+          await storage.write(key: 'auth_token', value: token);
+          await storage.write(key: 'role', value: role);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => WelcomeScreen()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(jsonResponse['message'] ?? 'Registration failed')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed. Please try again. ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
@@ -34,20 +85,124 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
-            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-            TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
-            TextField(controller: confirmPasswordController, decoration: const InputDecoration(labelText: 'Confirm Password'), obscureText: true),
-            ElevatedButton(
-              onPressed: () => registerUser(context),
-              child: const Text('Register'),
+      backgroundColor: const Color(0xFFF6F6F6),
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Create an Account!',
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+               const SizedBox(height: 4),
+              const Text(
+                'Welcome back, you\'ve been missed!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Username input
+              _buildInputField(controller: _usernameController, hintText: 'Username'),
+
+              // Email input
+              _buildInputField(controller: _emailController, hintText: 'Email'),
+
+              // Password input
+              _buildInputField(controller: _passwordController, hintText: 'Password', obscureText: true),
+
+              // Confirm Password input
+              _buildInputField(controller: _confirmPasswordController, hintText: 'Confirm Password', obscureText: true),
+
+              const SizedBox(height: 10),
+
+              // Register button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25),
+                child: GestureDetector(
+                  onTap: _registerUser,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Register',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Already have an account?'),
+                  const SizedBox(width: 5),
+                   GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
+                      );
+                    },
+                    child: const Text(
+                      'Login Now',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hintText,
+    bool obscureText = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          border: Border.all(color: Colors.white),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: TextField(
+            controller: controller,
+            obscureText: obscureText,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: hintText,
             ),
-          ],
+          ),
         ),
       ),
     );

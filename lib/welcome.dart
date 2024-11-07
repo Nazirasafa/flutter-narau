@@ -2,7 +2,7 @@ import 'package:api_frontend/screens/gallery/gallery.dart';
 import 'package:flutter/material.dart';
 import 'package:api_frontend/screens/news/news.dart';
 import 'package:api_frontend/screens/event/event.dart';
-import 'package:api_frontend/screens/home.dart';
+import 'package:api_frontend/screens/home/home.dart';
 
 
 

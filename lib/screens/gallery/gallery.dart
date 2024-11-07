@@ -88,7 +88,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 40),
+          const SizedBox(height: 50),
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -97,7 +97,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 const Text(
                   'Galleries',
                   style: TextStyle(
-                    fontSize: 50,
+                    fontSize: 48,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

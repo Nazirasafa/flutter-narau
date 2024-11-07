@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:api_frontend/screens/news/news_detail.dart';
 import 'package:api_frontend/screens/news/news_category.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 
@@ -20,6 +21,8 @@ class _NewsScreenState extends State<NewsScreen> {
   bool isLoading = true;
   String searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final storage = const FlutterSecureStorage();
+
 
   @override
   void initState() {
@@ -28,9 +31,13 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Future<void> fetchPosts() async {
+    final authToken = await storage.read(key: 'auth_token');
     try {
-      final response =
-          await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts'));
+      final response = await http.get(Uri.parse(
+        'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts'),
+        headers: {
+        'Authorization': 'Bearer $authToken',
+      },);
       if (response.statusCode == 200) {
         setState(() {
           postList = json.decode(response.body)['data'];
@@ -200,9 +207,9 @@ void _showErrorDialog(String message) {
             ),
             Expanded(
               child: isLoading
-                  ? const Center(child: const CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : postList.isEmpty
-                      ? const Center(child: const Text('No posts found in this category'))
+                      ? const Center(child: Text('No posts found in this category'))
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: filteredPostList.length,
@@ -224,7 +231,7 @@ void _showErrorDialog(String message) {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius:
-                                        const BorderRadius.all(const Radius.circular(30)),
+                                        const BorderRadius.all(Radius.circular(30)),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.grey.withOpacity(0.2),

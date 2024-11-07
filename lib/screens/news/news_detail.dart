@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:api_frontend/screens/news/news_filtered.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:api_frontend/components/button_like.dart';
 
 class DetailNewsScreen extends StatefulWidget {
   final int postId;
@@ -27,8 +29,12 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
   }
 
   Future<Map<String, dynamic>> fetchPostDetails() async {
-    final response = await http.get(Uri.parse(
-        'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}'));
+    final userId = await storage.read(key: 'userid');
+
+    final response = await http.post(
+        Uri.parse(
+            'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}'),
+        body: {'user_id': userId});
     if (response.statusCode == 200) {
       return json.decode(response.body)['data'];
     } else {
@@ -37,6 +43,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
   }
 
   Future<void> _sendComment() async {
+    final authToken = await storage.read(key: 'auth_token');
     final name = await storage.read(key: 'name') ?? '';
 
     if (_commentController.text.isEmpty) return;
@@ -45,10 +52,15 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
     });
 
     final response = await http.post(
-      Uri.parse(
-          'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}/comment'),
-      body: {'name': name, 'text': _commentController.text},
-    );
+        Uri.parse(
+            'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}/comment'),
+        body: {
+          'name': name,
+          'text': _commentController.text
+        },
+        headers: {
+          'Authorization': 'Bearer $authToken',
+        });
 
     if (response.statusCode == 200) {
       setState(() {
@@ -72,7 +84,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
         future: fetchPostDetails(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: const CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
@@ -149,45 +161,18 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
                           ),
                         ),
                       ),
-                     actions: [
-                    Padding(
-                        padding: const EdgeInsets.all(5),
-                        child: Transform.translate(
-                          offset: const Offset(-16, 4),
-                          child: ClipRRect(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(20)),
-                            child: BackdropFilter(
-                              filter:
-                                  ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(20)),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(Icons.favorite),
-                                  color: Colors.white,
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                              ),
-                            ),
-                          ),
+                      actions: [
+                        LikeButton(
+                          postId: post['id'],
+                          isLiked: post['isLiked'],
+                          likeCount: post['likes'],
                         ),
-                      ),
-                    
-                  ],
+                      ],
                     ),
-
                   ],
                 ),
                 Positioned(
-                  top: 280, // Atur agar konten muncul tepat di bawah gambar
+                  top: 280,
                   left: 0,
                   right: 0,
                   bottom: 0,
@@ -210,22 +195,33 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
                             spacing: 6.0,
                             children:
                                 post['categories'].map<Widget>((category) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  category['title'] ?? '',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.blue,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              );
+                              return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            FilteredNewsScreen(
+                                                category: category['title']),
+                                      ),  
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0, vertical: 4.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      category['title'] ?? '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.blue,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ));
                             }).toList(),
                           ),
                           const SizedBox(height: 8),
@@ -239,17 +235,17 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              CircleAvatar(
-                                radius: 20,
-                                backgroundColor: Colors.grey[300],
-                                child: const Icon(Icons.person),
-                              ),
-                              const SizedBox(width: 8),
+                             const CircleAvatar(
+                                  radius: 20,
+                                  backgroundImage: AssetImage(
+                                      'assets/profile_placeholder.png'), // Local asset
+                                ),
+                              const SizedBox(width: 16),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${post['user']['name']} - 9 hours ago',
+                                    '${post['user']['name']}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -340,8 +336,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
                               controller: _commentController,
                               decoration: InputDecoration(
                                 hintText: 'Write a comment...',
-                                hintStyle: TextStyle(
-                                    color: Colors.grey[700]),
+                                hintStyle: TextStyle(color: Colors.grey[700]),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide.none,

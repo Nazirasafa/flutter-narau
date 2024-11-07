@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:ui';
 
 class GalleryDetailScreen extends StatefulWidget {
   final int galleryId;
@@ -66,22 +67,69 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                           floating: false,
                           pinned: false,
                           flexibleSpace: FlexibleSpaceBar(
-                            background: Hero(
-                              tag: 'gallery-${gallery!['id']}',
-                              child: CachedNetworkImage(
-                                imageUrl: gallery!['img'] ?? '',
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const Center(
-                                    child: CircularProgressIndicator()),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.error),
+                            background: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Hero(
+                                  tag: 'gallery-${gallery!['id']}',
+                                  child: CachedNetworkImage(
+                                    imageUrl: gallery!['img'] ?? '',
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator()),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
+                                  ),
+                                ),
+                                // Overlay dengan efek fading hitam dari atas
+                                Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors
+                                            .black54, // Hitam semi-transparan di bagian atas
+                                        Colors
+                                            .transparent, // Transparan di bagian bawah
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          leading: Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: Transform.translate(
+                              offset: const Offset(16, 4),
+                              child: ClipRRect(
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(20)),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                      sigmaX: 8.0, sigmaY: 8.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(20)),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.arrow_back),
+                                      color: Colors.white,
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                          leading: IconButton(
-                            icon: const Icon(Icons.arrow_back),
-                            onPressed: () => Navigator.pop(context),
-                          ),
+                         
                         ),
                       ],
                     ),

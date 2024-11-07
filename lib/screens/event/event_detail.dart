@@ -40,110 +40,158 @@ class EventDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       backgroundColor: Colors.white,
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            SliverAppBar(
-              expandedHeight: 200.0,
-              
-              floating: false,
-              pinned: true,
-              elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                  background: CachedNetworkImage(
-                imageUrl: event['img'],
-                fit: BoxFit.contain,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(
+      body: Center(
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Event Image (Smaller)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: CachedNetworkImage(
+                  imageUrl: event['img'],
+                  width: 240, // Smaller size for the image
+                  //height: 120,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) =>
+                      const CircularProgressIndicator(
                     color: Color(0xFFA594F9),
                   ),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              )),
-            ),
-          ];
-        },
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+              ),
+              const SizedBox(height: 20),
               // Event Name
               Text(
                 event['name'],
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Poppins',
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               // Date and Time
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        DateFormat('d MMM')
-                            .format(DateTime.parse(event['date'])),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        DateFormat('EEEE')
-                            .format(DateTime.parse(event['date'])),
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${event['time_start']} - ${event['time_end']}',
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    ],
+                  Text(
+                    DateFormat('d MMM').format(DateTime.parse(event['date'])),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
                   ),
-                  const Spacer(),
-                  // Social Media Icon
-                  GestureDetector(
-                    onTap: () => _launchURL(event['social_media']),
-                    child:
-                        const Icon(Icons.link, color: Colors.orange, size: 30),
+                  Text(
+                    DateFormat('EEEE').format(DateTime.parse(event['date'])),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[400]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${event['time_start']} - ${event['time_end']}',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[400]),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              // Event Description with "Show More"
+
+              // Event Description
               Text(
                 event['desc'],
-                maxLines: 4, // Show limited lines initially
+                textAlign: TextAlign.center,
+                maxLines: 4,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16, height: 1.5),
               ),
-              const Spacer(),
-              // Add to Calendar Button
+              const SizedBox(height: 20),
+
+              const SizedBox(height: 20),
+
+              Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Center align horizontally
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      width: double.maxFinite,
+                      child: ElevatedButton(
+                        onPressed: _addToCalendar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'Add to Calendar',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                      width: 12), // Space between the button and icon
+                  GestureDetector(
+                    onTap: () => _launchURL(Uri.parse(event['social_media'])),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child:
+                          const Icon(Icons.link, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
               SizedBox(
-                width: double.infinity,
+                width: double.maxFinite,
                 child: ElevatedButton(
-                  onPressed: _addToCalendar,
+                  onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.white60,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 2,
                   ),
                   child: const Text(
-                    'Add to Calendar',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                    'Back',
+                    style: TextStyle(fontSize: 18, color: Colors.black38),  
                   ),
                 ),
               ),
+
+              // Add to Calendar Button
             ],
           ),
         ),

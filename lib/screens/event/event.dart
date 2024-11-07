@@ -89,7 +89,7 @@ class _EventScreenState extends State<EventScreen> {
                     children: [
                       const Text(
                         'Events',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 50,
                           fontWeight: FontWeight.w500,
                         ),
@@ -192,7 +192,7 @@ class _EventScreenState extends State<EventScreen> {
 
   Widget _buildEventCard(Map<String, dynamic> event) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       decoration: BoxDecoration(
         color: Colors.white,
