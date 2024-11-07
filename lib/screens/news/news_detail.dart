@@ -36,7 +36,9 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
             'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}'),
         body: {'user_id': userId});
     if (response.statusCode == 200) {
+      print(json.decode(response.body)['data']['img']);
       return json.decode(response.body)['data'];
+      
     } else {
       throw Exception('Failed to load post details');
     }

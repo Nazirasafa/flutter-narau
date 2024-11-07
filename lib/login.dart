@@ -39,6 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse != null) {
+          String name = jsonResponse['data']['name'];
+          String email = jsonResponse['data']['email'];
+
+          await storage.write(key: 'email', value: email);
+          await storage.write(key: 'name', value: name);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => WelcomeScreen()),
@@ -70,11 +75,13 @@ class _LoginScreenState extends State<LoginScreen> {
         if (jsonResponse['success'] == true) {
           String userid = jsonResponse['data']['id'].toString();
           String name = jsonResponse['data']['name'];
+          String email = jsonResponse['data']['email'];
           String token = jsonResponse['data']['token'];
           String role = jsonResponse['data']['role'].toString();
 
           await storage.write(key: 'userid', value: userid);
           await storage.write(key: 'name', value: name);
+          await storage.write(key: 'email', value: email);
           await storage.write(key: 'auth_token', value: token);
           await storage.write(key: 'role', value: role);
 

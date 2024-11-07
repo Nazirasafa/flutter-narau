@@ -21,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen>
   String userName = '';
   String fullName = '';
   String profilePic = '';
+  String email = '';
+
   List<dynamic> posts = [];
   List<dynamic> events = [];
   late AnimationController _animationController;
@@ -37,6 +39,20 @@ class _HomeScreenState extends State<HomeScreen>
     fetchEvents();
     _initAnimation();
   }
+  
+
+  Future<void> _navigateToProfile() async {
+  final bool? updated = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ProfileScreen(name: fullName, email: email, profilePic: profilePic)),
+  );
+
+  if (updated == true) {
+    print(updated);
+    await loadUserData(); // Reload user data if profile was updated
+  }
+}
+
 
   void _initAnimation() {
     _animationController = AnimationController(
@@ -55,55 +71,19 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> loadUserData() async {
     final name = await storage.read(key: 'name') ?? '';
-    //final pic = await storage.read(key: 'profile_pic') ?? '';
+    final pic = await storage.read(key: 'profile_pic') ?? '';
+    final emailStorage = await storage.read(key: 'email') ?? '';
+
+    print('loaduserdata in progress $name and $pic');
     setState(() {
+      email = emailStorage;
       fullName = name;
       userName = name.split(' ')[0];
-      //profilePic = pic;
+      profilePic = pic;
     });
   }
 
-  Future<void> updateProfile(String newName, String? newProfilePic) async {
-    final authToken = await storage.read(key: 'auth_token');
-    if (authToken == null) {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      }
-      return;
-    }
 
-    final url = Uri.parse(
-        'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/profile/update');
-
-    final Map<String, String> body = {
-      'name': newName,
-    };
-
-    if (newProfilePic != null) {
-      body['profile_pic'] = newProfilePic;
-    }
-
-    final response = await http.put(
-      url,
-      body: body,
-      headers: {
-        'Authorization': 'Bearer $authToken',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      // Update the local storage with new values
-      await storage.write(key: 'name', value: newName);
-      if (newProfilePic != null) {
-        await storage.write(key: 'profile_pic', value: newProfilePic);
-      }
-
-      // Reload the user data to refresh the UI
-      await loadUserData();
-    } else {}
-  }
 
   Future<void> fetchPosts() async {
     final response = await http.get(Uri.parse(
@@ -165,15 +145,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfileScreen(
-                                name: fullName,
-                                profilePic: profilePic,
-                              ),
-                            ),
-                          );
+                          _navigateToProfile();
                         },
                         child: Row(
                           children: [

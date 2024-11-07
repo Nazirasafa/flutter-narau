@@ -8,10 +8,12 @@ import 'dart:io'; // For File class
 
 class ProfileScreen extends StatefulWidget {
   final String name;
+  final String email;
   final String profilePic;
 
   ProfileScreen({
     required this.name,
+    required this.email,
     required this.profilePic,
   });
 
@@ -22,6 +24,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final storage = const FlutterSecureStorage();
   late TextEditingController _nameController;
+  late TextEditingController _emailController;
+
   String? _newProfilePic;
   bool _isLoading = false;
 
@@ -31,11 +35,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
+    _emailController = TextEditingController(text: widget.email);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
+
     super.dispose();
   }
 
@@ -82,36 +89,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleProfileUpdate() async {
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    final authToken = await storage.read(key: 'auth_token');
-    print('Auth Token: $authToken');
-    
-    final response = await updateProfile(
-      authToken: authToken!,
-      name: _nameController.text,
-      profilePic: _newProfilePic,
-    );
+    try {
+      final authToken = await storage.read(key: 'auth_token');
+      print(
+          'Auth Token: $authToken'); // Debug print to check if token is retrieved
 
-    print('Profile update response: $response');
+      final response = await updateProfile(
+        authToken: authToken!,
+        name: _nameController.text,
+        email: _emailController.text,
+        profilePic: _newProfilePic,
+      );
 
-    if (response['success']) {
-      if (mounted) {
-        Navigator.pop(context);
+      print(
+          'Profile update response: $response'); // Debug print to inspect the response
+
+      if (response['success']) {
+        await storage.write(
+            key: 'name', value: response['data']['data']['user']['name']);
+        await storage.write(
+            key: 'email', value: response['data']['data']['user']['email']);
+        await storage.write(
+            key: 'profile_pic', value: response['data']['data']['profile_pic']);
+
+        if (mounted) {
+          print(
+              "Profile update successful, returning true"); // Check if pop is executed with true
+          Navigator.pop(context, true);
+        }
+      } else {
+        throw Exception('Failed to update profile');
       }
-    } else {
-      throw Exception('Failed to update profile');
-    }
-  } catch (e) {
-    print("Error: $e");
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } catch (e) {
+      print("Error: $e"); // Print error if any occurs
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -166,46 +184,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _handleProfileUpdate,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.all(10)),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Update Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _logout,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[400],
-                    shadowColor: Colors.black,
-                    padding: const EdgeInsets.all(10)),
-                child: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+            const Spacer(),
+            GestureDetector(
+              onTap: _isLoading
+                  ? null
+                  : _handleProfileUpdate, // Fix: Call the function
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Update Profile',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: _logout, // Fix: Call the function
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red, width: 2),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -216,33 +243,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-// Extracted method to handle profile update request
+
 Future<Map<String, dynamic>> updateProfile({
   required String authToken,
   required String name,
+  required String email,
   String? profilePic,
 }) async {
   final dio = Dio();
-  const url = 'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/profile/update?_method=PUT';
-  
-
-  // Debug print to check if profilePic is not null and correct
-  if (profilePic != null) {
-    print('Profile Picture Path: $profilePic');
-  } else {
-    print('No profile picture selected.');
-  }
+  const url =
+      'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/profile/update?_method=PUT';
 
   final formData = FormData.fromMap({
     'name': name,
-    if (profilePic != null) 'profile_pic': await MultipartFile.fromFile(profilePic),
+    'email': email,
+    if (profilePic != null)
+      'profile_pic': await MultipartFile.fromFile(profilePic),
   });
 
   try {
-    print('Sending update profile request...');
-    print('URL: $url');
-    print('Headers: {Authorization: Bearer $authToken}');
-    print('FormData: $formData');
+    print("Sending profile update request with data: $formData");
 
     final response = await dio.post(
       url,
@@ -254,9 +274,9 @@ Future<Map<String, dynamic>> updateProfile({
       data: formData,
     );
 
-    print('Response status code: ${response.statusCode}');
-    print('Response data: ${response.data}');
-    
+    print("Profile update response status: ${response.statusCode}");
+    print("Profile update response data: ${response.data}");
+
     if (response.statusCode == 200) {
       return {'success': true, 'data': response.data};
     } else {
@@ -265,6 +285,9 @@ Future<Map<String, dynamic>> updateProfile({
     }
   } catch (e) {
     print("Error occurred while updating profile: $e");
-    return {'success': false, 'message': 'Error occurred while updating profile'};
+    return {
+      'success': false,
+      'message': 'Error occurred while updating profile'
+    };
   }
 }
