@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:api_frontend/screens/event/event_detail.dart';
+import 'package:api_frontend/screens/event/event_add.dart';
+import 'package:api_frontend/screens/event/event_edit.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class EventScreen extends StatefulWidget {
@@ -17,18 +20,34 @@ class _EventScreenState extends State<EventScreen> {
   bool isLoading = true;
   String searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  bool _isImageVisible = false;
+  String? userRole;
+  final storage = FlutterSecureStorage();
+
 
   @override
   void initState() {
     super.initState();
     fetchEvents();
+    _checkUserRole();
+    Future.delayed(Duration(milliseconds: 50), () {
+      setState(() {
+        _isImageVisible = true;
+      });
+    });
   }
+
+  Future<void> _checkUserRole() async {
+    userRole = await storage.read(key: 'role');
+    setState(() {});
+  }
+
 
   Future<void> fetchEvents() async {
     try {
       // Panggil API untuk mendapatkan data event
-      final response =
-          await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/events'));
+      final response = await http.get(Uri.parse(
+          'https://secretly-immortal-ghoul.ngrok-free.app/api/events'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body)['data'] as List;
         setState(() {
@@ -73,52 +92,174 @@ class _EventScreenState extends State<EventScreen> {
     );
   }
 
+  Future<void> _deleteEvent(int eventId) async {
+    try {
+      final token = await storage.read(key: 'auth_token');
+      final response = await http.delete(
+        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/events/${eventId}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Remove the event from both lists and update state
+        setState(() {
+          events.removeWhere((event) => event['id'] == eventId);
+          filteredEvents.removeWhere((event) => event['id'] == eventId);
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'Event deleted successfully',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.blue[400],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            margin: EdgeInsets.all(20),
+            duration: Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'DISMISS',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
+      } else {
+        throw Exception('Failed to delete event');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Text(
+                'Error deleting event: $e',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red[400],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          margin: EdgeInsets.all(20),
+          duration: Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'DISMISS',
+            textColor: Colors.white,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Events',
-                        style: TextStyle(
-                          fontSize: 50,
-                          fontWeight: FontWeight.w500,
+      body: AnimatedOpacity(
+        opacity: _isImageVisible ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 600),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Events',
+                              style: TextStyle(
+                                fontSize: 50,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (userRole == '3')
+                            FloatingActionButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddEventScreen(),
+                                  ),
+                                ).then((value) {
+                                  if (value == true) {
+                                    fetchEvents();
+                                  }
+                                });
+                              },
+                              backgroundColor: Colors.blue,
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        'Events in SMKN 4 Bogor',
-                        style: TextStyle(
-                          color: Colors.grey[800],
-                          fontSize: 14,
+                        Text(
+                          'Events in SMKN 4 Bogor',
+                          style: TextStyle(
+                            color: Colors.grey[800],
+                            fontSize: 14,
+                          ),
                         ),
+                        const SizedBox(height: 16),
+                        _buildSearchBar(),
+                      ])),
+              Expanded(
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFA594F9),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredEvents.length,
+                        itemBuilder: (context, index) =>
+                            _buildEventCard(filteredEvents[index]),
                       ),
-                      const SizedBox(height: 16),
-                      _buildSearchBar(),
-                    ])),
-            Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFA594F9),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: filteredEvents.length,
-                      itemBuilder: (context, index) =>
-                          _buildEventCard(filteredEvents[index]),
-                    ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -268,6 +409,7 @@ class _EventScreenState extends State<EventScreen> {
 
           // Date and Time row
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.calendar_today,
@@ -284,24 +426,9 @@ class _EventScreenState extends State<EventScreen> {
                   fontSize: 12,
                 ),
               ),
-              const Spacer(),
-              Icon(
-                Icons.access_time,
-                color: Colors.grey[600],
-                size: 16,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${event['time_start']} - ${event['time_end']}',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 12),        
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -326,6 +453,93 @@ class _EventScreenState extends State<EventScreen> {
                 ),
               ),
             ),
+          ),
+
+          SizedBox(height: 10),
+
+          if (userRole == '3')
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red[700],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      // Show delete confirmation dialog
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Confirm Delete'),
+                            content: Text('Are you sure you want to delete this event?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _deleteEvent(event['id']);
+                                },
+                                child: Text('Delete'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(left: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditEventScreen(event: event),
+                        ),
+                      ).then((value) {
+                        // Refresh events if edited successfully
+                        if (value == true) {
+                          fetchEvents();
+                        }
+                      });
+                    },
+                    child: const Text(
+                      'Edit',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

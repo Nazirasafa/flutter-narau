@@ -27,7 +27,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
   Future<void> fetchGalleryDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/galleries/${widget.galleryId}'));
+          'https://secretly-immortal-ghoul.ngrok-free.app/api/galleries/${widget.galleryId}'));
 
       if (response.statusCode == 200) {
         setState(() {

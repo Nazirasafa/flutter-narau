@@ -2,7 +2,7 @@
 <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="api_frontend"
+        android:label="4Hype"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

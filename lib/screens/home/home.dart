@@ -15,18 +15,19 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   final storage = const FlutterSecureStorage();
   String userName = '';
   String fullName = '';
   String profilePic = '';
   String email = '';
+  String role = '';
+  String roleText = '';
+  bool _isImageVisible = false;
+
 
   List<dynamic> posts = [];
   List<dynamic> events = [];
-  late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
 
   bool postIsLoading = true;
   bool eventIsLoading = true;
@@ -37,44 +38,43 @@ class _HomeScreenState extends State<HomeScreen>
     loadUserData();
     fetchPosts();
     fetchEvents();
-    _initAnimation();
+    Future.delayed(Duration(milliseconds: 50), () {
+      setState(() {
+        _isImageVisible = true;
+      });
+    });
   }
-  
 
   Future<void> _navigateToProfile() async {
-  final bool? updated = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => ProfileScreen(name: fullName, email: email, profilePic: profilePic)),
-  );
-
-  if (updated == true) {
-    print(updated);
-    await loadUserData(); // Reload user data if profile was updated
-  }
-}
-
-
-  void _initAnimation() {
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
+    final bool? updated = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfileScreen(name: fullName, email: email, profilePic: profilePic)),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    _animationController.forward();
+
+    if (updated == true) {
+      print(updated);
+      await loadUserData(); // Reload user data if profile was updated
+    }
   }
 
   Future<void> loadUserData() async {
     final name = await storage.read(key: 'name') ?? '';
+    final role = await storage.read(key: 'role') ?? '';
+     switch (role) {
+      case '3':
+        roleText = 'Admin';
+        break;
+      case '2':
+        roleText = 'Petugas';
+        break;
+      case '1':
+        roleText = 'User';
+        break;
+      default:
+    }
     final pic = await storage.read(key: 'profile_pic') ?? '';
     final emailStorage = await storage.read(key: 'email') ?? '';
 
-    print('loaduserdata in progress $name and $pic');
     setState(() {
       email = emailStorage;
       fullName = name;
@@ -83,11 +83,9 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-
-
   Future<void> fetchPosts() async {
     final response = await http.get(Uri.parse(
-        'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/latest/posts'));
+        'https://secretly-immortal-ghoul.ngrok-free.app/api/latest/posts'));
     if (response.statusCode == 200) {
       setState(() {
         posts = json.decode(response.body)['data'];
@@ -98,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> fetchEvents() async {
     final response = await http.get(Uri.parse(
-        'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/latest/events'));
+        'https://secretly-immortal-ghoul.ngrok-free.app/api/latest/events'));
     if (response.statusCode == 200) {
       setState(() {
         events = json.decode(response.body)['data'];
@@ -107,16 +105,20 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
+   
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(26.0),
-            child: SlideTransition(
-              position: _slideAnimation,
+      body: AnimatedOpacity(
+         opacity: _isImageVisible ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 600),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(26.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -163,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ],
                   ),
                   const SizedBox(height: 26),
-
+        
                   // User Info Card
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -184,8 +186,8 @@ class _HomeScreenState extends State<HomeScreen>
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const Text(
-                              'Guest',
+                            Text(
+                              roleText,
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -212,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   const SizedBox(height: 30),
-
+        
                   // Recent Section
                   const Text(
                     'Recent News',
@@ -222,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-
+                  
                   // News Carousel
                   if (posts.isNotEmpty)
                     CarouselSlider.builder(
@@ -298,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen>
                       },
                     ),
                   const SizedBox(height: 30),
-
+        
                   // Upcoming Events Section
                   const Text(
                     'Upcoming Events',
@@ -343,7 +345,6 @@ class _HomeScreenState extends State<HomeScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Title of the event
                                 Center(
                                   child: Text(
                                     event['name'],
@@ -356,10 +357,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-
                                 const SizedBox(height: 4),
-
-                                // Short description of the event
                                 Center(
                                   child: Text(
                                     event['short_desc'],
@@ -372,14 +370,14 @@ class _HomeScreenState extends State<HomeScreen>
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 10),
 
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
+                                          horizontal: 16, vertical: 6),
                                       decoration: BoxDecoration(
                                         color: Colors.blue,
                                         borderRadius: BorderRadius.circular(20),

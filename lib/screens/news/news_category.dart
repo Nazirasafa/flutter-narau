@@ -23,7 +23,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Future<void> fetchCategories() async {
     try {
       final response =
-          await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/categories'));
+          await http.get(Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
           categories = json.decode(response.body)['data'];
@@ -42,6 +42,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
       appBar: AppBar(
         title: const Text(
           'Categories',

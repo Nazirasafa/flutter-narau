@@ -49,6 +49,8 @@ dependencies:
   url_launcher: ^6.3.1
   image_picker: ^1.1.2
   dio: ^5.7.0
+  audioplayers: ^6.1.0
+  flutter_native_splash: ^2.4.2
   
 
 dev_dependencies:
@@ -80,10 +82,12 @@ flutter:
         - asset: fonts/Poppins-Black.ttf
           weight: 900
   assets:
-      - assets/images/logo.png
-      - assets/images/login_vector.png
-      - assets/images/home.svg
-      - assets/profile_placeholder.png
+      - assets/
+      - assets/images/
+      - assets/sounds/
+
+
+
 
 
 
@@ -91,6 +95,15 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+
+flutter_native_splash:
+    color: "#FFFFFF"
+    image: "assets/images/logo.png"
+    android_12:
+        color: "#FFFFFF"
+
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

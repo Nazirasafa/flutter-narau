@@ -18,7 +18,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     HomeScreen(),
     const NewsScreen(),
     EventScreen(),
-    const GalleryScreen(),
+    GalleryScreen(),
   ];
 
   void _onItemTapped(int index) {

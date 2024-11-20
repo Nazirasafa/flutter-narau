@@ -31,7 +31,7 @@ class _FilteredNewsScreenState extends State<FilteredNewsScreen> {
 
   Future<void> fetchFilteredPosts() async {
     final response = await http.get(Uri.parse(
-        'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts?category=${widget.category}'));
+        'https://secretly-immortal-ghoul.ngrok-free.app/api/posts?category=${widget.category}'));
 
     if (response.statusCode == 200) {
       setState(() {

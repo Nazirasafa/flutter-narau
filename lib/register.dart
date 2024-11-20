@@ -14,6 +14,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final storage = const FlutterSecureStorage();
+  bool _isLoading = false; // Loading state
 
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -33,9 +34,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true; // Set loading state to true
+    });
+
     try {
       final response = await http.post(
-        Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/register'),
+        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/register'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -53,11 +58,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (jsonResponse['success'] == true) {
           String userid = jsonResponse['data']['id'].toString();
           String name = jsonResponse['data']['name'];
+          String email = jsonResponse['data']['email'];
           String token = jsonResponse['data']['token'];
           String role = jsonResponse['data']['role'].toString();
 
           await storage.write(key: 'userid', value: userid);
           await storage.write(key: 'name', value: name);
+          await storage.write(key: 'email', value: email);
           await storage.write(key: 'auth_token', value: token);
           await storage.write(key: 'role', value: role);
 
@@ -71,14 +78,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         }
       } else {
+        // Handle non-200 responses
+        final errorResponse = json.decode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed. Please try again. ${response.body}')),
+          SnackBar(content: Text(errorResponse['message'] ?? 'Registration failed. Please try again.')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false; // Reset loading state
+      });
     }
   }
 
@@ -99,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-               const SizedBox(height: 4),
+              const SizedBox(height: 4),
               const Text(
                 'Welcome back, you\'ve been missed!',
                 textAlign: TextAlign.center,
@@ -128,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: GestureDetector(
-                  onTap: _registerUser,
+                  onTap: _isLoading ? null : _registerUser, // Disable button if loading
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
@@ -150,17 +163,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 10),
 
+              // Loading indicator
+              if (_isLoading) CircularProgressIndicator(),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text('Already have an account?'),
                   const SizedBox(width: 5),
-                   GestureDetector(
+                  GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
                       );
                     },
                     child: const Text(

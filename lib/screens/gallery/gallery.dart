@@ -3,7 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:api_frontend/screens/gallery/gallery_detail.dart';
-
+import 'package:api_frontend/screens/gallery/gallery_edit.dart';
+import 'package:api_frontend/screens/gallery/gallery_add.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -16,19 +18,33 @@ class _GalleryScreenState extends State<GalleryScreen> {
   List<Map<String, dynamic>> galleryList = [];
   List<Map<String, dynamic>> filteredGallery = [];
   bool isLoading = true;
+  String? userRole;
+  final storage = FlutterSecureStorage();
   String searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  bool _isImageVisible = false;
 
   @override
   void initState() {
     super.initState();
     fetchGallery();
+    _checkUserRole();
+    Future.delayed(Duration(milliseconds: 50), () {
+      setState(() {
+        _isImageVisible = true;
+      });
+    });
+  }
+
+  Future<void> _checkUserRole() async {
+    userRole = await storage.read(key: 'role');
+    setState(() {});
   }
 
   Future<void> fetchGallery() async {
     try {
-      final response =
-          await http.get(Uri.parse('https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/galleries'));
+      final response = await http.get(Uri.parse(
+          'https://secretly-immortal-ghoul.ngrok-free.app/api/galleries'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body)['data'] as List;
         setState(() {
@@ -80,119 +96,293 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
+  Future<void> _deleteGallery(int galleryId) async {
+    final token = await storage.read(key: 'auth_token');
+    try {
+      final response = await http.delete(
+        Uri.parse(
+            'https://secretly-immortal-ghoul.ngrok-free.app/api/galleries/$galleryId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          galleryList.removeWhere((gallery) => gallery['id'] == galleryId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'Post deleted successfully',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.blue[400],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            margin: EdgeInsets.all(20),
+            duration: Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'DISMISS',
+              textColor: Colors.white,
+              onPressed: () =>
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+            ),
+          ),
+        );
+      } else {
+        _showErrorDialog('Failed to delete post');
+      }
+    } catch (e) {
+      _showErrorDialog('Error deleting post: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width > 600;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 50),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Galleries',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  'Delve into the diverse galleries of SMKN 4 Bogor.',
-                  style: TextStyle(
-                    color: Colors.grey[800],
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildSearchBar(),
-              ],
-            ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(
-                    child: const CircularProgressIndicator(
-                        color: const Color(0xFFA594F9)))
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isWideScreen ? 3 : 2,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 3 / 4,
-                    ),
-                    itemCount: filteredGallery.length,
-                    itemBuilder: (context, index) {
-                      final gallery = filteredGallery[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  GalleryDetailScreen(galleryId: gallery['id']),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.4),
-                                spreadRadius: 3,
-                                blurRadius: 5,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                            borderRadius: BorderRadius.circular(25),
-                            image: DecorationImage(
-                              image: CachedNetworkImageProvider(
-                                gallery['img'],
-                                maxWidth: 800,
-                                maxHeight: 800,
-                              ),
-                              fit: BoxFit.cover,
-                            ),
+      body: AnimatedOpacity(
+        opacity: _isImageVisible ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 600),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 50),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Galleries',
+                          style: TextStyle(
+                            fontSize: 50,
+                            fontWeight: FontWeight.w500,
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.7),
-                                ],
+                        ),
+                        if (userRole == '3')
+                        FloatingActionButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddGalleryScreen(),
                               ),
-                            ),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Text(
-                                  gallery['name'],
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
+                            ).then((value) {
+                              if (value == true) {
+                                fetchGallery();
+                              }
+                            });
+                          },
+                          backgroundColor: Colors.blue,
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  Text(
+                    'Galleries of SMKN 4 Bogor.',
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSearchBar(),
+                ],
+              ),
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(
+                      child: const CircularProgressIndicator(
+                          color: const Color(0xFFA594F9)))
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isWideScreen ? 3 : 2,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        childAspectRatio: 3 / 4,
+                      ),
+                      itemCount: filteredGallery.length,
+                      itemBuilder: (context, index) {
+                        final gallery = filteredGallery[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => GalleryDetailScreen(
+                                    galleryId: gallery['id']),
+                              ),
+                            );
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                  image: DecorationImage(
+                                    image: CachedNetworkImageProvider(
+                                      gallery['img'],
+                                      maxWidth: 800,
+                                      maxHeight: 800,
+                                    ),
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
-                            ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.7),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        gallery['name'],
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (userRole == '3')
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey.withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 3),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: IconButton(
+                                                  icon: Icon(Icons.edit, color: Colors.blue),
+                                                  padding: EdgeInsets.zero,
+                                                  onPressed: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => EditGalleryScreen(gallery: gallery),
+                                                      ),
+                                                    ).then((value) {
+                                                      if (value == true) {
+                                                        fetchGallery();
+                                                      }
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey.withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 3),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: IconButton(
+                                                  icon: Icon(Icons.delete, color: Colors.red),
+                                                  padding: EdgeInsets.zero,
+                                                  onPressed: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) => AlertDialog(
+                                                        title: Text('Confirm Delete'),
+                                                        content: Text('Are you sure you want to delete this gallery?'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () => Navigator.pop(context),
+                                                            child: Text('Cancel'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(context);
+                                                              _deleteGallery(gallery['id']);
+                                                            },
+                                                            child: Text('Delete'),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -243,4 +433,3 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 }
-

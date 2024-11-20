@@ -2,6 +2,8 @@ import 'dart:ui'; // Needed for ImageFilter
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:audioplayers/audioplayers.dart';
+
 
 class LikeButton extends StatefulWidget {
   final int postId;
@@ -20,10 +22,16 @@ class LikeButton extends StatefulWidget {
 }
 
 class _LikeButtonState extends State<LikeButton> {
+    final AudioPlayer _audioPlayer = AudioPlayer();
   final storage = const FlutterSecureStorage();
   late bool isLiked;
   late int likeCount;
   bool showLikeCount = false;
+
+     // Function to play sound
+  Future<void> _playSound() async {
+    await _audioPlayer.play(AssetSource('sounds/pop.mp3'));
+  }
 
   @override
   void initState() {
@@ -34,7 +42,7 @@ class _LikeButtonState extends State<LikeButton> {
   }
 
   Future<void> likePost() async {
-    final url = 'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}/like';
+    final url = 'https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}/like';
     final authToken = await storage.read(key: 'auth_token');
 
     try {
@@ -51,6 +59,8 @@ class _LikeButtonState extends State<LikeButton> {
           likeCount += 1;
           showLikeCount = true;
         });
+        _playSound(); // Play sound on tap
+
       } else {
         throw Exception('Failed to like the post');
       }
@@ -60,7 +70,7 @@ class _LikeButtonState extends State<LikeButton> {
   }
 
   Future<void> unlikePost() async {
-    final url = 'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}/unlike';
+    final url = 'https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}/unlike';
     final authToken = await storage.read(key: 'auth_token');
 
     try {
@@ -77,6 +87,7 @@ class _LikeButtonState extends State<LikeButton> {
           likeCount -= 1;
           showLikeCount = false;
         });
+        _playSound(); // Play sound on tap
       } else {
         throw Exception('Failed to unlike the post');
       }

@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'welcome.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -16,8 +16,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final storage = const FlutterSecureStorage();
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
 
   Duration get loginTime => const Duration(milliseconds: 2250);
+
+    Future<void> _playSound() async {
+    await _audioPlayer.play(AssetSource('sounds/welcome.mp3'));
+  }
 
   @override
   void initState() {
@@ -31,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Validate the token by making a test API call
       final response = await http.get(
         Uri.parse(
-            'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/check-token'), // Replace with your validation endpoint
+            'https://secretly-immortal-ghoul.ngrok-free.app/api/check-token'), // Replace with your validation endpoint
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -58,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         Uri.parse(
-            'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/login'),
+            'https://secretly-immortal-ghoul.ngrok-free.app/api/login'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -69,6 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
+        _playSound();
         final jsonResponse = json.decode(response.body);
 
         // Check for success and extract token from nested data object
@@ -102,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+        bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
       body: SafeArea(
@@ -110,12 +118,18 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/images/login_vector.png',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.error),
-              ),
+                 AnimatedOpacity(
+            opacity: isKeyboardOpen ? 0.0 : 1.0,
+            duration: const Duration(milliseconds: 500),
+            child: isKeyboardOpen
+                ? Container() // Empty container when keyboard is open
+                : Image.asset(
+                    'assets/images/login_vector.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error),
+                  ),
+          ),
               const Text(
                 'Hello Again!',
                 style: TextStyle(

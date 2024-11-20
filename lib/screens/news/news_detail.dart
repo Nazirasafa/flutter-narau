@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:api_frontend/components/button_like.dart';
+import 'package:audioplayers/audioplayers.dart';
+
 
 class DetailNewsScreen extends StatefulWidget {
   final int postId;
@@ -21,6 +23,13 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
   final TextEditingController _commentController = TextEditingController();
   bool _isSubmitting = false;
   late Future<Map<String, dynamic>> _postDetails;
+    final AudioPlayer _audioPlayer = AudioPlayer();
+  
+    // Function to play sound
+   Future<void> _playSound() async {
+    await _audioPlayer.play(AssetSource('sounds/pop.mp3'));
+  }
+
 
   @override
   void initState() {
@@ -33,10 +42,9 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
 
     final response = await http.post(
         Uri.parse(
-            'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}'),
+            'https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}'),
         body: {'user_id': userId});
     if (response.statusCode == 200) {
-      print(json.decode(response.body)['data']['img']);
       return json.decode(response.body)['data'];
       
     } else {
@@ -45,6 +53,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
   }
 
   Future<void> _sendComment() async {
+      _playSound();
     final authToken = await storage.read(key: 'auth_token');
     final name = await storage.read(key: 'name') ?? '';
 
@@ -55,7 +64,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
 
     final response = await http.post(
         Uri.parse(
-            'https://ujikom2024pplg.smkn4bogor.sch.id/0062311270/api/posts/${widget.postId}/comment'),
+            'https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}/comment'),
         body: {
           'name': name,
           'text': _commentController.text
