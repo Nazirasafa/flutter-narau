@@ -81,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final authToken = await storage.read(key: 'auth_token');
-      const url = 'https://secretly-immortal-ghoul.ngrok-free.app/api/logout';
+      const url = 'http://10.0.2.2:8000/api/logout';
 
       final response = await Dio().post(
         url,
@@ -302,7 +302,7 @@ Future<Map<String, dynamic>> updateProfile({
 }) async {
   final dio = Dio();
   const url =
-      'https://secretly-immortal-ghoul.ngrok-free.app/api/profile/update?_method=PUT';
+      'http://10.0.2.2:8000/api/profile/update?_method=PUT';
 
   final formData = FormData.fromMap({
     'name': name,

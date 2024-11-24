@@ -46,7 +46,7 @@ class _NewsScreenState extends State<NewsScreen> {
     final authToken = await storage.read(key: 'auth_token');
     try {
       final response = await http.get(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/posts'),
+        Uri.parse('http://10.0.2.2:8000/api/posts'),
         headers: {
           'Authorization': 'Bearer $authToken',
         },
@@ -73,7 +73,7 @@ class _NewsScreenState extends State<NewsScreen> {
     try {
       final response = await http.delete(
         Uri.parse(
-            'https://secretly-immortal-ghoul.ngrok-free.app/api/posts/$postId'),
+            'http://10.0.2.2:8000/api/posts/$postId'),
         headers: {
           'Authorization': 'Bearer $authToken',
         },

@@ -29,7 +29,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
     final authToken = await storage.read(key: 'auth_token');
 
     final response = await http.get(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}'),
+        Uri.parse('http://10.0.2.2:8000/api/posts/${widget.postId}'),
         headers: {'Authorization': 'Bearer $authToken'},
       );
     if (response.statusCode == 200) {

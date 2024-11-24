@@ -42,7 +42,7 @@ class _AddGalleryScreenState extends State<AddGalleryScreen> {
       final token = await storage.read(key: 'auth_token');
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/galleries')
+        Uri.parse('http://10.0.2.2:8000/api/galleries')
       );
 
       request.headers['Authorization'] = 'Bearer $token';

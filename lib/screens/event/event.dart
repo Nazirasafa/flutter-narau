@@ -46,7 +46,7 @@ class _EventScreenState extends State<EventScreen> {
     try {
       // Panggil API untuk mendapatkan data event
       final response = await http.get(Uri.parse(
-          'https://secretly-immortal-ghoul.ngrok-free.app/api/events'));
+          'http://10.0.2.2:8000/api/events'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body)['data'] as List;
         setState(() {
@@ -96,7 +96,7 @@ class _EventScreenState extends State<EventScreen> {
       final token = await storage.read(key: 'auth_token');
       final response = await http.delete(
         Uri.parse(
-            'https://secretly-immortal-ghoul.ngrok-free.app/api/events/$eventId'),
+            'http://10.0.2.2:8000/api/events/$eventId'),
         headers: {
           'Authorization': 'Bearer $token',
         },

@@ -44,7 +44,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Future<void> fetchGallery() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://secretly-immortal-ghoul.ngrok-free.app/api/galleries'));
+          'http://10.0.2.2:8000/api/galleries'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body)['data'] as List;
         setState(() {
@@ -101,7 +101,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     try {
       final response = await http.delete(
         Uri.parse(
-            'https://secretly-immortal-ghoul.ngrok-free.app/api/galleries/$galleryId'),
+            'http://10.0.2.2:8000/api/galleries/$galleryId'),
         headers: {
           'Authorization': 'Bearer $token',
         },

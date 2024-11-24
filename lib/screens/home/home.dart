@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> fetchPosts() async {
     final response = await http.get(Uri.parse(
-        'https://secretly-immortal-ghoul.ngrok-free.app/api/latest/posts'));
+        'http://10.0.2.2:8000/api/latest/posts'));
     if (response.statusCode == 200) {
       setState(() {
         posts = json.decode(response.body)['data'];
@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> fetchEvents() async {
     final response = await http.get(Uri.parse(
-        'https://secretly-immortal-ghoul.ngrok-free.app/api/latest/events'));
+        'http://10.0.2.2:8000/api/latest/events'));
     if (response.statusCode == 200) {
       setState(() {
         events = json.decode(response.body)['data'];

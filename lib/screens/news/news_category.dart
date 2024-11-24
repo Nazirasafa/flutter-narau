@@ -25,7 +25,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Future<void> fetchCategories() async {
     try {
       final response =
-          await http.get(Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/categories'));
+          await http.get(Uri.parse('http://10.0.2.2:8000/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
           categories = json.decode(response.body)['data'];

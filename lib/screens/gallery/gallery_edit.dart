@@ -59,7 +59,7 @@ class _EditGalleryScreenState extends State<EditGalleryScreen> {
       final token = await storage.read(key: 'auth_token');
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/galleries/${widget.gallery['id']}')
+        Uri.parse('http://10.0.2.2:8000/api/galleries/${widget.gallery['id']}')
       );
 
       request.fields['_method'] = 'PUT';

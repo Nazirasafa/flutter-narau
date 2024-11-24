@@ -69,7 +69,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
     final authToken = await storage.read(key: 'auth_token');
     try {
       final response = await http.get(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}'),
+        Uri.parse('http://10.0.2.2:8000/api/posts/${widget.postId}'),
         headers: {'Authorization': 'Bearer $authToken'},
       );
 
@@ -95,7 +95,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
     final authToken = await storage.read(key: 'auth_token');
     try {
       final response = await http.get(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/categories'),
+        Uri.parse('http://10.0.2.2:8000/api/categories'),
         headers: {'Authorization': 'Bearer $authToken'},
       );
 
@@ -134,7 +134,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
     try {
       var request = http.MultipartRequest(
         'POST', 
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}')
+        Uri.parse('http://10.0.2.2:8000/api/posts/${widget.postId}')
       );
 
       request.headers['Authorization'] = 'Bearer $authToken';

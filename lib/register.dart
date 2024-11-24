@@ -40,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/register'),
+        Uri.parse('http://10.0.2.2:8000/api/register'),
         headers: {
           'Content-Type': 'application/json',
         },

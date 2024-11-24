@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final token = await storage.read(key: 'auth_token');  //ngambil token user di penyimpanan android
     if (token != null) { // kalau udah ada tokennya
       final response = await http.get(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/check-token'), // cek tokennya valid apa engga ke api laravel
+        Uri.parse('http://10.0.2.2:8000/api/check-token'), // cek tokennya valid apa engga ke api laravel
         headers: {
           'Authorization': 'Bearer $token', //kita ngirim tokennya buat dicek disini
         },
@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<String?> _authUser(LoginData data) async {
     try {
       final response = await http.post(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/login'),
+        Uri.parse('http://10.0.2.2:8000/api/login'),
         headers: {
           'Content-Type': 'application/json',
         },

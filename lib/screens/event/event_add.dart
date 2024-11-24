@@ -90,7 +90,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       final token = await storage.read(key: 'auth_token');
       var request = http.MultipartRequest(
         'POST', 
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/events')
+        Uri.parse('http://10.0.2.2:8000/api/events')
       );
 
       request.headers['Authorization'] = 'Bearer $token';

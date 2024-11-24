@@ -27,7 +27,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   Future<void> fetchCategories() async {
     try {
       final response = await http.get(
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/categories')
+        Uri.parse('http://10.0.2.2:8000/api/categories')
       );
       if (response.statusCode == 200) {
         setState(() {
@@ -77,7 +77,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       final token = await storage.read(key: 'auth_token');
       var request = http.MultipartRequest(
         'POST', 
-        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/posts')
+        Uri.parse('http://10.0.2.2:8000/api/posts')
       );
 
       request.headers['Authorization'] = 'Bearer $token';
