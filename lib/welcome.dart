@@ -8,6 +8,8 @@ import 'package:api_frontend/screens/home/home.dart';
 
 
 class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
+
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
@@ -37,16 +39,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       ),
       bottomNavigationBar:
        Padding(
-        padding: const EdgeInsets.only(right: 20.0, left: 20.0,  bottom: 20.0, top: 10),
+        padding: const EdgeInsets.only(right: 0.0, left: 0.0,  bottom: 0.0, top: 0),
         child: PhysicalModel(
           color: Colors.white,
           elevation: 0,
-          borderRadius: BorderRadius.circular(30.0),
+          borderRadius: BorderRadius.circular(8.0),
           child: Container(
             height: 80,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(30.0),
+              borderRadius: BorderRadius.circular(8.0),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -61,7 +63,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               children: [
                 _buildNavItem(icon: Icons.home, index: 0, label: "Home"),
                 _buildNavItem(icon: Icons.info, index: 1, label: "News"),
-                _buildNavItem(icon: Icons.person, index: 2, label: "Event"),
+                _buildNavItem(icon: Icons.watch_later, index: 2, label: "Event"),
                 _buildNavItem(icon: Icons.article, index: 3, label: "Gallery"),
               ],
             ),
@@ -77,15 +79,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(15.0),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.transparent,
-          borderRadius: BorderRadius.circular(20.0),
+          color: isSelected ? Colors.deepPurpleAccent : Colors.transparent,
+          borderRadius: BorderRadius.circular(10.0),
         ),
         child: Icon(
           icon,
-          color: isSelected ? Colors.white : const Color.fromARGB(255, 122, 195, 255),
+          color: isSelected ? Colors.white : Colors.deepPurpleAccent,
           size: 26,
         ),
       ),

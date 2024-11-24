@@ -11,7 +11,8 @@ class ProfileScreen extends StatefulWidget {
   final String email;
   final String profilePic;
 
-  ProfileScreen({
+  const ProfileScreen({
+    super.key,
     required this.name,
     required this.email,
     required this.profilePic,
@@ -47,11 +48,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    final authToken = await storage.read(key: 'auth_token');
-    const url =
-        'https://secretly-immortal-ghoul.ngrok-free.app/api/logout';
+    // Show confirmation dialog
+    bool? confirmLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    // Proceed only if user confirms
+    if (confirmLogout != true) return;
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
 
     try {
+      final authToken = await storage.read(key: 'auth_token');
+      const url = 'https://secretly-immortal-ghoul.ngrok-free.app/api/logout';
+
       final response = await Dio().post(
         url,
         options: Options(
@@ -60,6 +91,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
       );
+
+      // Close loading dialog
+      Navigator.of(context).pop();
 
       if (response.statusCode == 200) {
         await storage.deleteAll();
@@ -73,7 +107,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception('Logout failed');
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show error dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Logout Error'),
+          content: Text('Failed to logout: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -162,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
-                          color: Colors.blue,
+                          color: Colors.deepPurpleAccent,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -200,8 +250,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.deepPurpleAccent,
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Center(
                   child: Text(
@@ -223,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.red, width: 2),
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Center(
                   child: Text(

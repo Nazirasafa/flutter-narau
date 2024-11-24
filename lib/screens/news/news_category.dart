@@ -6,6 +6,8 @@ import 'package:api_frontend/screens/news/news_filtered.dart';
 
 
 class CategoryScreen extends StatefulWidget {
+  const CategoryScreen({super.key});
+
   @override
   _CategoryScreenState createState() => _CategoryScreenState();
 }

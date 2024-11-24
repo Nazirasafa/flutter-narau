@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class EditEventScreen extends StatefulWidget {
   final Map<String, dynamic> event;
   
-  EditEventScreen({required this.event});
+  const EditEventScreen({super.key, required this.event});
 
   @override
   _EditEventScreenState createState() => _EditEventScreenState();
@@ -19,13 +19,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
   final storage = FlutterSecureStorage();
   bool _isLoading = false;
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _shortDescController = TextEditingController();
-  TextEditingController _descController = TextEditingController();
-  TextEditingController _socialMediaController = TextEditingController();
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _timeStartController = TextEditingController();
-  TextEditingController _timeEndController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _shortDescController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _socialMediaController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeStartController = TextEditingController();
+  final TextEditingController _timeEndController = TextEditingController();
 
   File? _selectedImage;
   String? _existingImageUrl;
@@ -160,13 +160,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
       request.fields['social_media'] = _socialMediaController.text;
       request.fields['date'] = DateFormat('yyyy-MM-dd').format(selectedDate!);
       
-      request.fields['time_start'] = selectedStartTime!.hour.toString().padLeft(2, '0') + 
-                                   ':' + 
-                                   selectedStartTime!.minute.toString().padLeft(2, '0');
+      request.fields['time_start'] = '${selectedStartTime!.hour.toString().padLeft(2, '0')}:${selectedStartTime!.minute.toString().padLeft(2, '0')}';
       
-      request.fields['time_end'] = selectedEndTime!.hour.toString().padLeft(2, '0') + 
-                                 ':' + 
-                                 selectedEndTime!.minute.toString().padLeft(2, '0');
+      request.fields['time_end'] = '${selectedEndTime!.hour.toString().padLeft(2, '0')}:${selectedEndTime!.minute.toString().padLeft(2, '0')}';
 
       if (_selectedImage != null) {
         request.files.add(await http.MultipartFile.fromPath(

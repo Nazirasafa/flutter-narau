@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 
 class AddEventScreen extends StatefulWidget {
+  const AddEventScreen({super.key});
+
   @override
   _AddEventScreenState createState() => _AddEventScreenState();
 }
@@ -15,13 +17,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final storage = FlutterSecureStorage();
   bool _isLoading = false;
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _shortDescController = TextEditingController();
-  TextEditingController _descController = TextEditingController();
-  TextEditingController _socialMediaController = TextEditingController();
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _timeStartController = TextEditingController();
-  TextEditingController _timeEndController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _shortDescController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _socialMediaController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeStartController = TextEditingController();
+  final TextEditingController _timeEndController = TextEditingController();
 
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
@@ -347,10 +349,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   // Submit button
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submitEvent,
-                    child: Text('Create Event'),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
                     ),
+                    child: Text('Create Event'),
                   ),
                 ],
               ),

@@ -5,6 +5,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:io';
 
 class AddGalleryScreen extends StatefulWidget {
+  const AddGalleryScreen({super.key});
+
   @override
   _AddGalleryScreenState createState() => _AddGalleryScreenState();
 }
@@ -14,8 +16,8 @@ class _AddGalleryScreenState extends State<AddGalleryScreen> {
   final storage = FlutterSecureStorage();
   bool _isLoading = false;
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _descController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
 
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();

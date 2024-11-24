@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class EditGalleryScreen extends StatefulWidget {
   final Map<String, dynamic> gallery;
 
-  EditGalleryScreen({required this.gallery});
+  const EditGalleryScreen({super.key, required this.gallery});
 
   @override
   _EditGalleryScreenState createState() => _EditGalleryScreenState();
@@ -19,8 +19,8 @@ class _EditGalleryScreenState extends State<EditGalleryScreen> {
   final storage = FlutterSecureStorage();
   bool _isLoading = false;
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _descController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
 
   File? _selectedImage;
   String? _existingImageUrl;

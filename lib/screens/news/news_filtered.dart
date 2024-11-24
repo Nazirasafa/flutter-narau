@@ -9,8 +9,7 @@ import 'package:api_frontend/screens/news/news_detail.dart';
 class FilteredNewsScreen extends StatefulWidget {
   final String category;
 
-  const FilteredNewsScreen({Key? key, required this.category})
-      : super(key: key);
+  const FilteredNewsScreen({super.key, required this.category});
 
   @override
   _FilteredNewsScreenState createState() => _FilteredNewsScreenState();

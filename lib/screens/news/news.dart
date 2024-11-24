@@ -104,9 +104,9 @@ class _NewsScreenState extends State<NewsScreen> {
               ],
             ),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.blue[400],
+            backgroundColor: Colors.green[400],
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(10),
             ),
             margin: EdgeInsets.all(20),
             duration: Duration(seconds: 4),
@@ -174,48 +174,19 @@ class _NewsScreenState extends State<NewsScreen> {
                         const Text(
                           'News',
                           style: TextStyle(
-                            fontSize: 50,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 24,
+                            color: Colors.deepPurple,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        if (userRole == '3')
-                        FloatingActionButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddPostScreen(),
-                              ),
-                            ).then((value) {
-                              if (value == true) {
-                                fetchPosts();
-                              }
-                            });
-                          },
-                          backgroundColor: Colors.blue,
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      'News about SMKN 4 Bogor',
-                      style: TextStyle(
-                        color: Colors.grey[800],
-                        fontSize: 14,
-                      ),
+                        ],
                     ),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.2),
@@ -248,25 +219,47 @@ class _NewsScreenState extends State<NewsScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
+                        if (userRole == '3')
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[400],
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'All News',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
+                          child: GestureDetector(
+                            onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddPostScreen(),
+                              ),
+                            ).then((value) {
+                              if (value == true) {
+                                fetchPosts();
+                              }
+                            });
+                          },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 3,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Add News',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 10),
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
@@ -280,8 +273,8 @@ class _NewsScreenState extends State<NewsScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.deepPurpleAccent,
+                                borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.grey.withOpacity(0.2),
@@ -293,9 +286,10 @@ class _NewsScreenState extends State<NewsScreen> {
                               ),
                               child: Center(
                                 child: Text(
-                                  'Other Categories..',
+                                  'News Categories',
                                   style: TextStyle(
-                                    color: Colors.grey[600],
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500
                                   ),
                                 ),
                               ),
@@ -312,9 +306,9 @@ class _NewsScreenState extends State<NewsScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : postList.isEmpty
                         ? const Center(
-                            child: Text('No posts found in this category'))
+                            child: Text('No posts found'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             itemCount: filteredPostList.length,
                             itemBuilder: (context, index) {
                               final post = filteredPostList[index];
@@ -334,7 +328,7 @@ class _NewsScreenState extends State<NewsScreen> {
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: const BorderRadius.all(
-                                          Radius.circular(30)),
+                                          Radius.circular(10)),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.grey.withOpacity(0.2),
@@ -353,7 +347,7 @@ class _NewsScreenState extends State<NewsScreen> {
                                           children: [
                                             ClipRRect(
                                               borderRadius:
-                                                  BorderRadius.circular(20),
+                                                  BorderRadius.circular(6),
                                               child: Hero(
                                                 tag: 'post-${post['id']}',
                                                 child: CachedNetworkImage(
@@ -379,17 +373,24 @@ class _NewsScreenState extends State<NewsScreen> {
                                                 children: [
                                                   Wrap(
                                                     spacing:
-                                                        6.0, // Spacing between each category
+                                                        6.0,
                                                     children: post['categories']
                                                         .map<Widget>(
                                                             (category) {
-                                                      return Text(
-                                                        category['title'] ?? '',
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          color: Colors.blue,
-                                                          fontSize: 12,
+                                                      return ClipRRect(
+                                                         borderRadius: BorderRadius.circular(6),
+                                                        child: Container(
+                                                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                                          color: Colors.deepPurpleAccent,
+                                                          child: Text(
+                                                            category['title'] ?? '',
+                                                            style: const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              color: Colors.white,
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
                                                         ),
                                                       );
                                                     }).toList(),
@@ -400,9 +401,9 @@ class _NewsScreenState extends State<NewsScreen> {
                                                     style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.w600,
-                                                      fontSize: 14,
+                                                      fontSize: 16,
                                                       height:
-                                                          1.0, // Atur nilai height sesuai kebutuhan
+                                                          1.0,
                                                     ),
                                                   ),
                                                   const SizedBox(height: 8),
@@ -445,7 +446,7 @@ class _NewsScreenState extends State<NewsScreen> {
                                               children: [
                                                 IconButton(
                                                   icon: Icon(Icons.edit,
-                                                      color: Colors.blue),
+                                                      color: Colors.green),
                                                   onPressed: () {
                                                     Navigator.push(
                                                       context,

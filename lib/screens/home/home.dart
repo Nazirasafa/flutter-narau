@@ -1,6 +1,5 @@
 import 'package:api_frontend/screens/event/event_detail.dart';
 import 'package:api_frontend/screens/home/home_profile.dart';
-import 'package:api_frontend/login.dart';
 import 'package:api_frontend/screens/news/news_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -11,18 +10,17 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   final storage = const FlutterSecureStorage();
-  String userName = '';
   String fullName = '';
   String profilePic = '';
   String email = '';
-  String role = '';
-  String roleText = '';
   bool _isImageVisible = false;
 
 
@@ -52,33 +50,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (updated == true) {
-      print(updated);
       await loadUserData(); // Reload user data if profile was updated
     }
   }
 
   Future<void> loadUserData() async {
     final name = await storage.read(key: 'name') ?? '';
-    final role = await storage.read(key: 'role') ?? '';
-     switch (role) {
-      case '3':
-        roleText = 'Admin';
-        break;
-      case '2':
-        roleText = 'Petugas';
-        break;
-      case '1':
-        roleText = 'User';
-        break;
-      default:
-    }
     final pic = await storage.read(key: 'profile_pic') ?? '';
     final emailStorage = await storage.read(key: 'email') ?? '';
 
     setState(() {
       email = emailStorage;
       fullName = name;
-      userName = name.split(' ')[0];
       profilePic = pic;
     });
   }
@@ -108,22 +91,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-   
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: const Color(0xFFF5F5F5),
       body: AnimatedOpacity(
-         opacity: _isImageVisible ? 1.0 : 0.0,
+        opacity: _isImageVisible ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 600),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(26.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header Section
-                  Row(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child:  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
@@ -137,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            'Hi $userName',
+                            'Hi $fullName',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -164,148 +147,105 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 26),
-        
-                  // User Info Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              fullName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              roleText,
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 24),
-                            Text(
-                              DateFormat('MMMM d, yyyy').format(DateTime.now()),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  
                   ),
-                  const SizedBox(height: 30),
-        
-                  // Recent Section
+
+                
+                  // Recent News Section
                   const Text(
                     'Recent News',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 24,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
-                  // News Carousel
-                  if (posts.isNotEmpty)
-                    CarouselSlider.builder(
+
+                  // News Grid
+                  SizedBox(
+                    height: 230, // Increased height for the horizontal list
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal, // Enable horizontal scrolling
                       itemCount: posts.length,
-                      options: CarouselOptions(
-                        height: 200,
-                        viewportFraction: 1,
-                        enlargeCenterPage: true,
-                        autoPlay: true,
-                      ),
-                      itemBuilder: (context, index, realIndex) {
+                      itemBuilder: (context, index) {
                         final post = posts[index];
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailNewsScreen(postId: post['id']),
+                                builder: (context) => DetailNewsScreen(postId: post['id']),
                               ),
                             );
                           },
                           child: Container(
+                            width: 200, // Increased width for each item
+                            margin: const EdgeInsets.only(right: 10), // Add spacing between items
+                            padding: const EdgeInsets.all(8.0), // Added padding inside the card
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              image: DecorationImage(
-                                image: CachedNetworkImageProvider(post['img']),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withOpacity(0.8)
-                                  ],
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
-                              ),
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    post['title'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image(
+                                    image: CachedNetworkImageProvider(post['img']),
+                                    fit: BoxFit.cover,
+                                    height: 120, // Adjusted height for the image
+                                    width: double.infinity,
+                                  ),
+                                ),
+                                const SizedBox(height: 8), // Space between image and text
+                                Expanded( // Use Expanded to prevent overflow
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 4.0), // Padding for text
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          post['title'],
+                                          style: const TextStyle(
+                                            fontSize: 16, // Increased font size
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${post['read_time']} min read',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '${post['read_time']} min read',
-                                        style: const TextStyle(
-                                            color: Colors.white70),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         );
                       },
                     ),
+                  ),
                   const SizedBox(height: 30),
-        
+
                   // Upcoming Events Section
                   const Text(
                     'Upcoming Events',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 24,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -317,98 +257,60 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final event = events[index];
                       return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EventDetailScreen(event: event),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EventDetailScreen(event: event),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 15),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
-                            );
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  spreadRadius: 3,
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Center(
-                                  child: Text(
-                                    event['name'],
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Date component - made bigger
+                              Center(
+                                child: Text(
+                                  DateFormat('d MMMM').format(DateTime.parse(event['date'])),
+                                  style: const TextStyle(
+                                    fontSize: 32, // Increased font size for the date
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Center(
-                                  child: Text(
-                                    event['short_desc'],
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontFamily: 'Poppins',
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4), // Space between date and event name
+                              // Event name component
+                              Center(
+                                child: Text(
+                                  event['name'],
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16, // Font size for the event name
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 10),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_today,
-                                            color: Colors.white,
-                                            size: 16,
-                                            weight: 20,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            DateFormat('EEEE, d MMMM').format(
-                                                DateTime.parse(event['date'])),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontFamily: 'Poppins',
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    ],
-                                ),
-                              ],
-                            ),
-                          ));
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ],

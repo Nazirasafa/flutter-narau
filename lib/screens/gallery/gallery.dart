@@ -169,64 +169,81 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Galleries',
-                          style: TextStyle(
-                            fontSize: 50,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Galleries',
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.w700,
                         ),
-                        if (userRole == '3')
-                        FloatingActionButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddGalleryScreen(),
-                              ),
-                            ).then((value) {
-                              if (value == true) {
-                                fetchGallery();
-                              }
-                            });
-                          },
-                          backgroundColor: Colors.blue,
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      ),
                       ],
-                    ),
-                  Text(
-                    'Galleries of SMKN 4 Bogor.',
-                    style: TextStyle(
-                      color: Colors.grey[800],
-                      fontSize: 14,
-                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildSearchBar(),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (userRole == '3')
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddGalleryScreen(),
+                                ),
+                              ).then((value) {
+                                if (value == true) {
+                                  fetchGallery();
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurpleAccent,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 3,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Add Galleries',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      SizedBox(width: 10),
+                    ],
+                  ),
                 ],
               ),
             ),
             Expanded(
               child: isLoading
                   ? const Center(
-                      child: const CircularProgressIndicator(
-                          color: const Color(0xFFA594F9)))
+                      child:
+                          CircularProgressIndicator(color: Color(0xFFA594F9)))
                   : GridView.builder(
                       padding: const EdgeInsets.all(16),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: isWideScreen ? 3 : 2,
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
-                        childAspectRatio: 3 / 4,
+                        childAspectRatio: 1 / 1,
                       ),
                       itemCount: filteredGallery.length,
                       itemBuilder: (context, index) {
@@ -245,7 +262,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(25),
+                                  borderRadius: BorderRadius.circular(8),
                                   image: DecorationImage(
                                     image: CachedNetworkImageProvider(
                                       gallery['img'],
@@ -258,7 +275,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(25),
+                                  borderRadius: BorderRadius.circular(8),
                                   gradient: LinearGradient(
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -270,18 +287,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                 ),
                               ),
                               Align(
-                                alignment: Alignment.center,
+                                alignment: Alignment.bottomLeft,
                                 child: Padding(
-                                  padding: const EdgeInsets.all(10.0),
+                                  padding: const EdgeInsets.all(15.0),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         gallery['name'],
-                                        textAlign: TextAlign.center,
+                                        textAlign: TextAlign.start,
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 18,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -301,7 +318,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                                   color: Colors.white,
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.grey.withOpacity(0.5),
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
                                                       spreadRadius: 2,
                                                       blurRadius: 5,
                                                       offset: Offset(0, 3),
@@ -309,13 +327,17 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                                   ],
                                                 ),
                                                 child: IconButton(
-                                                  icon: Icon(Icons.edit, color: Colors.blue),
+                                                  icon: Icon(Icons.edit,
+                                                      color: Colors.blue),
                                                   padding: EdgeInsets.zero,
                                                   onPressed: () {
                                                     Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
-                                                        builder: (context) => EditGalleryScreen(gallery: gallery),
+                                                        builder: (context) =>
+                                                            EditGalleryScreen(
+                                                                gallery:
+                                                                    gallery),
                                                       ),
                                                     ).then((value) {
                                                       if (value == true) {
@@ -334,7 +356,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                                   color: Colors.white,
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.grey.withOpacity(0.5),
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
                                                       spreadRadius: 2,
                                                       blurRadius: 5,
                                                       offset: Offset(0, 3),
@@ -342,25 +365,36 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                                   ],
                                                 ),
                                                 child: IconButton(
-                                                  icon: Icon(Icons.delete, color: Colors.red),
+                                                  icon: Icon(Icons.delete,
+                                                      color: Colors.red),
                                                   padding: EdgeInsets.zero,
                                                   onPressed: () {
                                                     showDialog(
                                                       context: context,
-                                                      builder: (context) => AlertDialog(
-                                                        title: Text('Confirm Delete'),
-                                                        content: Text('Are you sure you want to delete this gallery?'),
+                                                      builder: (context) =>
+                                                          AlertDialog(
+                                                        title: Text(
+                                                            'Confirm Delete'),
+                                                        content: Text(
+                                                            'Are you sure you want to delete this gallery?'),
                                                         actions: [
                                                           TextButton(
-                                                            onPressed: () => Navigator.pop(context),
-                                                            child: Text('Cancel'),
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    context),
+                                                            child:
+                                                                Text('Cancel'),
                                                           ),
                                                           TextButton(
                                                             onPressed: () {
-                                                              Navigator.pop(context);
-                                                              _deleteGallery(gallery['id']);
+                                                              Navigator.pop(
+                                                                  context);
+                                                              _deleteGallery(
+                                                                  gallery[
+                                                                      'id']);
                                                             },
-                                                            child: Text('Delete'),
+                                                            child:
+                                                                Text('Delete'),
                                                           ),
                                                         ],
                                                       ),
@@ -392,7 +426,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),

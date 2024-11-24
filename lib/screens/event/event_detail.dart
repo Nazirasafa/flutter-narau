@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 class EventDetailScreen extends StatelessWidget {
   final Map<String, dynamic> event;
 
-  const EventDetailScreen({Key? key, required this.event}) : super(key: key);
+  const EventDetailScreen({super.key, required this.event});
 
   // Helper function to launch URL
   void _launchURL(Uri url) async {
@@ -85,19 +85,12 @@ class EventDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('d MMM').format(DateTime.parse(event['date'])),
+                    DateFormat('EEEE, d MMM').format(DateTime.parse(event['date'])),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Colors.deepPurpleAccent,
                     ),
-                  ),
-                  Text(
-                    DateFormat('EEEE').format(DateTime.parse(event['date'])),
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[400]),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -105,7 +98,7 @@ class EventDetailScreen extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Colors.grey[400]),
+                        color: Colors.deepPurpleAccent),
                   ),
                 ],
               ),
@@ -122,71 +115,21 @@ class EventDetailScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Center align horizontally
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      width: double.maxFinite,
-                      child: ElevatedButton(
-                        onPressed: _addToCalendar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 2,
-                        ),
-                        child: const Text(
-                          'Add to Calendar',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                      width: 12), // Space between the button and icon
-                  GestureDetector(
-                    onTap: () => _launchURL(Uri.parse(event['social_media'])),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 4,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                      child:
-                          const Icon(Icons.link, color: Colors.white, size: 24),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
               SizedBox(
                 width: double.maxFinite,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white60,
+                    backgroundColor: Colors.deepPurpleAccent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 2,
                   ),
                   child: const Text(
                     'Back',
-                    style: TextStyle(fontSize: 18, color: Colors.black38),  
+                    style: TextStyle(fontSize: 18, color: Colors.white),  
                   ),
                 ),
               ),

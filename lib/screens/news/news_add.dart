@@ -6,6 +6,8 @@ import 'dart:io';
 import 'dart:convert';
 
 class AddPostScreen extends StatefulWidget {
+  const AddPostScreen({super.key});
+
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
 }
@@ -42,14 +44,14 @@ class _AddPostScreenState extends State<AddPostScreen> {
     }
   }
 
-  TextEditingController _titleController = TextEditingController();
-  TextEditingController _bodyController = TextEditingController();
-  TextEditingController _readTimeController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _bodyController = TextEditingController();
+  final TextEditingController _readTimeController = TextEditingController();
 
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
-  List<int> _selectedCategories = [];
+  final List<int> _selectedCategories = [];
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -224,10 +226,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
               // Submit button
               ElevatedButton(
                 onPressed: _submitPost,
-                child: Text('Create Post'),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: Text('Create Post'),
               ),
             ],
           ),

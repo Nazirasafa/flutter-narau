@@ -8,7 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class EditPostScreen extends StatefulWidget {
   final int postId;
 
-  const EditPostScreen({Key? key, required this.postId}) : super(key: key);
+  const EditPostScreen({super.key, required this.postId});
 
   @override
   _EditPostScreenState createState() => _EditPostScreenState();
@@ -67,11 +67,9 @@ class _EditPostScreenState extends State<EditPostScreen> {
   }
   Future<void> _fetchPostDetails() async {
     final authToken = await storage.read(key: 'auth_token');
-    final userId = await storage.read(key: 'userid');
     try {
-      final response = await http.post(
+      final response = await http.get(
         Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/posts/${widget.postId}'),
-        body: {'user_id': userId},
         headers: {'Authorization': 'Bearer $authToken'},
       );
 
@@ -86,7 +84,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
           );
         });
       } else {
-        _showErrorDialog('Failed to load post details');
+        _showErrorDialog('Failed to load post details' + response.body);
       }
     } catch (e) {
       _showErrorDialog('Error fetching post details: $e');

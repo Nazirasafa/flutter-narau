@@ -8,7 +8,7 @@ import 'welcome.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -18,10 +18,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final storage = const FlutterSecureStorage();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-
   Duration get loginTime => const Duration(milliseconds: 2250);
 
-    Future<void> _playSound() async {
+  Future<void> _playSound() async {
     await _audioPlayer.play(AssetSource('sounds/welcome.mp3'));
   }
 
@@ -32,30 +31,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _checkToken() async {
-    final token = await storage.read(key: 'auth_token');
-    if (token != null) {
-      // Validate the token by making a test API call
+    final token = await storage.read(key: 'auth_token');  //ngambil token user di penyimpanan android
+    if (token != null) { // kalau udah ada tokennya
       final response = await http.get(
-        Uri.parse(
-            'https://secretly-immortal-ghoul.ngrok-free.app/api/check-token'), // Replace with your validation endpoint
+        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/check-token'), // cek tokennya valid apa engga ke api laravel
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token', //kita ngirim tokennya buat dicek disini
         },
       );
-      final jsonResponse = json.decode(response.body);
+      final jsonResponse = json.decode(response.body); // kita ambil respon dari api
 
-      if (jsonResponse != null) {
+      if (jsonResponse != null) { // null -> tokennya udah expired
+         String userid = jsonResponse['data']['id'].toString();
           String name = jsonResponse['data']['name'];
+          String profilePic = jsonResponse['data']['profile_pic'];
           String email = jsonResponse['data']['email'];
+          String token = jsonResponse['data']['token'];
+          String role = jsonResponse['data']['role'].toString();
 
-          await storage.write(key: 'email', value: email);
+          await storage.write(key: 'userid', value: userid);
           await storage.write(key: 'name', value: name);
+          await storage.write(key: 'profile_pic', value: profilePic);
+          await storage.write(key: 'email', value: email);
+          await storage.write(key: 'auth_token', value: token);
+          await storage.write(key: 'role', value: role);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => WelcomeScreen()),
         );
       } else {
-        await storage.delete(key: 'auth_token'); // Clear expired token
+        await storage.delete(key: 'auth_token');
       }
     }
   }
@@ -63,8 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<String?> _authUser(LoginData data) async {
     try {
       final response = await http.post(
-        Uri.parse(
-            'https://secretly-immortal-ghoul.ngrok-free.app/api/login'),
+        Uri.parse('https://secretly-immortal-ghoul.ngrok-free.app/api/login'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -78,21 +82,22 @@ class _LoginScreenState extends State<LoginScreen> {
         _playSound();
         final jsonResponse = json.decode(response.body);
 
-        // Check for success and extract token from nested data object
         if (jsonResponse['success'] == true) {
           String userid = jsonResponse['data']['id'].toString();
           String name = jsonResponse['data']['name'];
+          String profilePic = jsonResponse['data']['profile_pic'];
           String email = jsonResponse['data']['email'];
           String token = jsonResponse['data']['token'];
           String role = jsonResponse['data']['role'].toString();
 
           await storage.write(key: 'userid', value: userid);
           await storage.write(key: 'name', value: name);
+          await storage.write(key: 'profile_pic', value: profilePic);
           await storage.write(key: 'email', value: email);
           await storage.write(key: 'auth_token', value: token);
           await storage.write(key: 'role', value: role);
 
-          return null; // Login successful
+          return null;
         } else {
           return jsonResponse['message'] ?? 'Login failed';
         }
@@ -109,91 +114,80 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-        bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
+    bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-                 AnimatedOpacity(
-            opacity: isKeyboardOpen ? 0.0 : 1.0,
-            duration: const Duration(milliseconds: 500),
-            child: isKeyboardOpen
-                ? Container() // Empty container when keyboard is open
-                : Image.asset(
-                    'assets/images/login_vector.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 50),
+                AnimatedOpacity(
+                  opacity: isKeyboardOpen ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: isKeyboardOpen
+                      ? Container()
+                      : Image.asset(
+                          'assets/images/login_vector.png',
+                          height: 250,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.error),
+                        ),
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'Welcome Back!',
+                  style: TextStyle(
+                    color: Colors.deepPurpleAccent,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
                   ),
-          ),
-              const Text(
-                'Hello Again!',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Welcome back, you\'ve been missed!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 10),
+                Text(
+                  'Sign in to continue',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 16,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-
-              // email input
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: TextField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none, hintText: 'Email'),
+                const SizedBox(height: 30),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.email, color: Colors.deepPurpleAccent),
+                    hintText: 'Email',
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-
-              // password input
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none, hintText: 'Password'),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.lock, color: Colors.deepPurpleAccent),
+                    hintText: 'Password',
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-
-              // Sign in button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: GestureDetector(
-                  onTap: () async {
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: () async {
                     final loginData = LoginData(
                       name: _emailController.text,
                       password: _passwordController.text,
@@ -203,63 +197,56 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (authError == null) {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => WelcomeScreen()),
+                        MaterialPageRoute(builder: (context) => WelcomeScreen()),
                       );
                     } else {
-                      // Tampilkan error kalau login gagal
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(authError)),
                       );
                     }
                   },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(12),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    minimumSize: const Size(double.infinity, 55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    child: const Center(
-                      child: Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
+                  ),
+                  child: const Text(
+                    'Sign In',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Register route
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Not a member?'),
-                  const SizedBox(width: 5),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Register Now',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w700,
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Don\'t have an account?'),
+                    const SizedBox(width: 5),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const RegisterScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Register',
+                        style: TextStyle(
+                          color: Colors.deepPurpleAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  )
-                ],
-              ),
-            ],
+                    )
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
